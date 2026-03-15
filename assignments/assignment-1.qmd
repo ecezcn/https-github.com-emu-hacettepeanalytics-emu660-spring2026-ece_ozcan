@@ -1,0 +1,142 @@
+---
+title: "Assignment 1"
+format: html
+code-fold: true
+code-summary: "Show Code"
+---
+
+# Assignment 1
+
+My first assignment has four parts.
+
+## (a)
+
+[A brief summary of Mr. Vardar's speech](https://www.youtube.com/watch?v=Fi8-phj1X1A)
+
+In my view, Mr. Vardar's presentation can be divided into three primary parts.
+
+First, he stresses that Industrial Engineers possess the skills required to effectively leverage data science tools and emphasizes the strong connection between Industrial Engineering and data science practices. He presents data analytics as a valuable problem-solving tool for Industrial Engineers.
+
+Second, Mr. Vardar points out that in designing complex systems, simplicity is often the most effective approach. Even when complex solutions are necessary, they should ideally begin with simple foundations.
+
+Lastly, he refers to the Pareto Principle (the 80-20 rule), explaining that mastering just 20% of the skills in data analytics such as programming, data mining techniques, or using cloud platforms can satisfy roughly 80% of an Industrial Engineer's practical needs.
+
+## (b)
+
+Question: How can Industrial Engineers leverage data science tools to solve real-world problems, and why is understanding both fields important for career development?
+
+Answer: Industrial Engineers can use data science tools to analyze complex datasets and optimize processes. Understanding both Industrial Engineering and data science allows engineers to bridge technical problem-solving skills with data-driven insights.
+
+Multiple-Choice Question: According to Cem Vardar, which statement about the Pareto Principle (80-20 rule) in learning data analytics is correct?
+
+A) Industrial Engineers need to learn 100% of data analytics skills to be effective.  
+B) Learning 20% of key data analytics skills can satisfy 80% of the practical needs.  
+C) Only programming skills matter; other tools are not necessary.  
+D) The Pareto Principle does not apply to Industrial Engineers.
+
+Answer: B
+
+## (c) Explore Statistical Summaries with Custom Functions and Iteration Methods
+
+```{r}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Show Code"
+data(mtcars)
+cars <- mtcars
+
+compute_stats <- function(x) {
+  list(
+    mean = mean(x),
+    median = median(x),
+    variance = var(x),
+    IQR = IQR(x),
+    minimum = min(x),
+    maximum = max(x)
+  )
+}
+
+results <- list()
+
+for (col_name in names(cars)) {
+  results[[col_name]] <- compute_stats(cars[[col_name]])
+  cat("\n============================\n")
+  cat("Column:", col_name, "\n")
+  print(results[[col_name]])
+}
+
+#results <- sapply(cars, compute_stats)
+#lapply_results <- lapply(cars, compute_stats)
+```
+
+## (d)
+
+```{r}
+#| echo: true
+#| code-fold: true
+#| code-summary: "Show Code"
+
+#install.packages("dslabs")
+library(dslabs)
+
+my_first <- "Ece"
+my_birth_year <- 1995
+
+k <- (nchar(my_first) + my_birth_year) %% 15 + 8
+cat("The value of k is:", k, "\n")
+
+if (k %% 2 == 0) {
+  selected_rows <- head(polls_us_election_2016, k)
+} else {
+  selected_rows <- tail(polls_us_election_2016, k)
+}
+
+selected_rows
+
+# Total number of NA values in the dataset
+total_na <- sum(is.na(polls_us_election_2016))
+
+cat("Total NA values in the dataset:", total_na, "\n")
+
+# Number of NA values per column
+na_per_column <- colSums(is.na(polls_us_election_2016))
+
+na_sorted <- sort(na_per_column, decreasing = TRUE)
+
+head(na_sorted, 8)
+
+# Create a new object
+polls_us_election_2016_new <- polls_us_election_2016
+
+# Replace NA values
+for (col_name in names(polls_us_election_2016_new)) {
+  if (is.numeric(polls_us_election_2016_new[[col_name]])) {
+    polls_us_election_2016_new[[col_name]][is.na(polls_us_election_2016_new[[col_name]])] <- my_birth_year + k
+  } else if (is.character(polls_us_election_2016_new[[col_name]]) || is.factor(polls_us_election_2016_new[[col_name]])) {
+    polls_us_election_2016_new[[col_name]] <- as.character(polls_us_election_2016_new[[col_name]])
+    polls_us_election_2016_new[[col_name]][is.na(polls_us_election_2016_new[[col_name]])] <- paste0(my_first, "_", k)
+  }
+}
+
+cat("\nPreview of the new dataset after replacing NA values:\n")
+head(polls_us_election_2016_new)
+
+# Display k rows
+if (k %% 2 == 0) {
+  new_selected_rows <- head(polls_us_election_2016_new, k)
+  cat("\nk is even, so the first", k, "rows of the new data frame are displayed.\n\n")
+} else {
+  new_selected_rows <- tail(polls_us_election_2016_new, k)
+  cat("\nk is odd, so the last", k, "rows of the new data frame are displayed.\n\n")
+}
+
+new_selected_rows
+
+# Total number of NA values remaining
+remaining_na <- sum(is.na(polls_us_election_2016_new))
+cat("\nTotal number of NA values remaining in the new data frame:", remaining_na, "\n")
+
+# Check 
+cat("Result of anyNA(new data frame):", anyNA(polls_us_election_2016_new), "\n")
+
+```
