@@ -1,56 +1,363 @@
 ---
-title: "Project X"
+title: "Project Istanbul"
+format: html
+code-fold: true
+code-summary: "Show Code"
 ---
+
+```{r}
+#| include: false
+library(readxl)
+library(ggplot2)
+library(dplyr)
+library(scales)
+library(forcats)
+library(tidyverse)
+```
 
 Welcome to my project page.
 
 Keep an eye on this space to stay updated with my project activities.
 
-
 # 1. Project Overview and Scope
 
-xxxxxx
+Istanbul is the most populous city in Europe. Consequently, in the event of a disaster such as an earthquake, both the scale of potential damage and the demand for assistance would be substantial.
+
+This project focuses on Istanbul, a city widely expected to experience a major earthquake and considerable damage. The objective is not only to analyze buildings and residential areas in terms of structural risk and provide district-level assessments, but also to examine the perceptions of residents living in Istanbul and to compare these findings with the analytical results.
+
+To achieve this, four different datasets were utilized, and a variety of graphs were generated and interpreted in detail to derive meaningful insights.
 
 # 2. Data
 
-xxxxxx
-
 ## 2.1 Data Source
 
-xxxxxx
+[Deprem Senaryosu Analiz Sonuçları](https://data.ibb.gov.tr/dataset/deprem-senaryosu-analiz-sonuclari/resource/9c3ac492-de4b-4245-b418-7ad3df67a193)
+
+[İstanbul Çevresinde Gerçekleşen Depremler 2019-2020](https://data.ibb.gov.tr/dataset/istanbul-da-son-bir-yilda-gerceklesen-depremler/resource/32904f60-8091-4dc3-b527-351dca6c1c22)
+
+[2019-2024 Yılları Belediye Nüfusları](https://data.ibb.gov.tr/dataset/belediye-nufuslari-veri-seti#)
+
+[2017 Mahalle Bazlı Bina Sayıları](https://data.ibb.gov.tr/dataset/mahalle-bazli-bina-analiz-verisi/resource/cef193d5-0bd2-4e8d-8a69-275c50288875)
+
+[VDYM İlçe Bazında Hanelerdeki Kentsel Dönüşüm Fikri Bireysel Öngörüleri](https://data.ibb.gov.tr/dataset/vdym-ilce-bazinda-hanelerdeki-kentsel-donusum-fikri-bireysel-ongoruleri/resource/2683ee8b-9bc3-45cf-a115-49b285851317) is a dataset about the opinions of households about the idea of urban transformation on a district basis.
+
+All this data taken from [İstanbul Büyükşehir Belediyesi Açık Veri Portalı](https://data.ibb.gov.tr/dataset)
+
+```{r}
+Sys.setlocale("LC_CTYPE", "Turkish_Turkey.1254")
+
+#setwd("C:/Users/Administrator/Documents/GitHub/emu660-spring2026-ecezcn")
+
+depremsenaryo <- read_excel("depremsenaryo.xlsx")
+mahbinasayi <- read_excel("mahbinasayi.xlsx")
+istanbuldepremverisi <- read_excel("istanbuldepremverisi.xlsx")
+belediyenufus <- read_excel("belediyenufus.xlsx")
+kentseldonusum <- read_excel("kentseldonusum.xlsx")
+
+save(depremsenaryo, mahbinasayi, istanbuldepremverisi, belediyenufus, kentseldonusum,
+     file = "istanbul_deprem_verileri.RData")
+
+fix_text2 <- function(x) {
+  if (!is.character(x)) return(x)
+  x <- as.character(x)
+  x <- iconv(x, from = "", to = "UTF-8", sub = "")
+  x <- trimws(x)
+  x
+}
+
+depremsenaryo[] <- lapply(depremsenaryo, fix_text2)
+mahbinasayi[] <- lapply(mahbinasayi, fix_text2)
+istanbuldepremverisi[] <- lapply(istanbuldepremverisi, fix_text2)
+belediyenufus[] <- lapply(belediyenufus, fix_text2)
+kentseldonusum[] <- lapply(kentseldonusum, fix_text2)
+
+str(depremsenaryo)
+str(mahbinasayi)
+str(istanbuldepremverisi)
+str(belediyenufus)
+str(kentseldonusum)
+
+```
+
 
 ## 2.2 General Information About Data
 
-xxxxxx
+[Deprem Senaryosu Analiz Sonuçları](https://data.ibb.gov.tr/dataset/deprem-senaryosu-analiz-sonuclari/resource/9c3ac492-de4b-4245-b418-7ad3df67a193) is a dataset that contains the results of an earthquake scenario analysis. Its columns mainly include information on the number of buildings by damage level, the number of people by vital status, and pipe damage.
+
+[İstanbul Çevresinde Gerçekleşen Depremler 2019-2020](https://data.ibb.gov.tr/dataset/istanbul-da-son-bir-yilda-gerceklesen-depremler/resource/32904f60-8091-4dc3-b527-351dca6c1c22) is a dataset on earthquakes that occurred around Istanbul. Each row represents a single earthquake, and the columns provide various details about these events.
+
+[2019-2024 Yılları Belediye Nüfusları](https://data.ibb.gov.tr/dataset/belediye-nufuslari-veri-seti#) is a dataset that provides population information for each municipality.
+
+[2017 Mahalle Bazlı Bina Sayıları](https://data.ibb.gov.tr/dataset/mahalle-bazli-bina-analiz-verisi/resource/cef193d5-0bd2-4e8d-8a69-275c50288875) is a dataset about buildings at the neighbourhood level. Each row represents a neighbourhood, and the columns mainly include information about the construction year of buildings and the number of floors.
 
 ## 2.3 Reason of Choice
 
-xxxxxx
+Istanbul is widely regarded as a city facing a very high earthquake risk, with the potential for severe loss of life and property. Experts frequently warn in the media that a major earthquake, estimated to range between magnitudes 7.2 and 7.6, could strike the city. I chose to focus on this highly relevant issue in order to inform the public through a comprehensive analysis, raise awareness, and encourage precautionary measures that could help minimize the impact of such a disaster.
 
 ## 2.4 Preprocessing
 
-xxxxxx
+There are 4 datasets which were downloaded from the sources mentioned in the section 2.1 Data Source. The .RData file can be downloaded to review.
 
 # 3. Analysis
 
-xxxxxx
-
 ## 3.1 Exploratory Data Analysis
 
-xxxxxx
+“depremsenaryo” analysis:
 
-## 3.2 Trend Analysis
+The analysis began with the “depremsenaryo” dataset.The top three districts in terms of “Loss of Life” are Bahçelievler, Bakırköy, and Küçükçekmece.
 
-xxxxxx
+Bahçelievler, Bakırköy, Fatih and Küçükçekmece on the “Ağır Yaralı” plot,
 
-## 3.3 Model Fitting
+Bahçelievler, Bakırköy and Küçükçekmece on the “Hastanede Tedavi” and “Hafif Yaralı” plot were attention-grabbing.
 
-xxxxxx
+```{r}
 
-## 3.4 Results
+#install.packages("ggplot2")
 
-xxxxxx
+depremsenaryo <- read_excel("depremsenaryo.xlsx")
+
+top_data <- depremsenaryo %>%
+  arrange(desc(can_kaybi_sayisi)) %>%
+  slice(1:10)
+
+ggplot(top_data, aes(x = reorder(ilce_adi, can_kaybi_sayisi),
+                     y = can_kaybi_sayisi)) +
+  geom_col(fill = "firebrick") +
+  coord_flip() +
+  geom_text(aes(label = can_kaybi_sayisi), hjust = -0.1) +
+  theme_minimal()
+
+s2<-depremsenaryo%>%ggplot(aes(x=ilce_adi, y=agir_yarali_sayisi))+
+  geom_point()+
+  theme(axis.text.x=element_text(angle=90, hjust=1))+
+  xlab("İlçe Adı")+
+  ylab("Ağır Yaralı Sayısı")+
+  labs(title="İlçe Bazında Ağır Yaralı Sayısı Dağılımı")
+s2
+
+s3<-depremsenaryo%>%ggplot(aes(x=ilce_adi, y=hastanede_tedavi_sayisi))+
+  geom_point()+
+  theme(axis.text.x=element_text(angle=90, hjust=1))+
+  xlab("İlçe Adı")+
+  ylab("Hastanede Tedavi Sayısı")+
+  labs(title="İlçe Bazında Hastanede Tedavi Sayısı Dağılımı")
+s3
+
+s4<-depremsenaryo%>%ggplot(aes(x=ilce_adi, y=hafif_yarali_sayisi))+
+  geom_point()+
+  theme(axis.text.x=element_text(angle=90, hjust=1))+
+  xlab("İlçe Adı")+
+  ylab("Hafif Yaralı Sayısı")+
+  labs(title="İlçe Bazında Hafif Yaralı Sayısı Dağılımı")
+s4
+
+p1<-depremsenaryo%>%ggplot(aes(x=ilce_adi, y=gecici_barinma))+
+  geom_point()+
+  theme(axis.text.x=element_text(angle=90, hjust=1))+
+  xlab("İlçe Adı")+
+  ylab("Geçici Barınma")+
+  labs(title="İlçe Bazında Geçici Barınma Dağılımı")
+p1
+
+```
+
+The analysis continued with the “mahbinasayi” dataset, evaluating buildings based on their construction year and number of floors.
+
+Although the data is based on neighborhoods, the analyses have been done based on districts.
+
+```{r}
+
+p2 <- ggplot(mahbinasayi, aes(x = ilce_adi)) +
+  geom_col(aes(y = `1980_oncesi`, fill = "1980 Oncesi"),
+           position = "dodge") +
+  geom_col(aes(y = `1980-2000_arasi`, fill = "1980-2000 Arasi"),
+           position = "dodge") +
+  geom_col(aes(y = `2000_sonrasi`, fill = "2000 Sonrasi"),
+           position = "dodge") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  xlab("Ilce") +
+  ylab("Bina Sayisi") +
+  labs(title = "Ilcelere Gore Bina Yasi Dagilimi", fill = "Bina Donemi")
+
+p2
+
+```
+
+“ilçe bazında kat sayısına göre bina sayıları”:
+
+```{r}
+
+p3 <- ggplot(mahbinasayi, aes(x = ilce_adi)) +
+  geom_col(aes(y = `1-4 kat_arasi`, fill = "1-4 kat arasi"),
+           position = "dodge") +
+  geom_col(aes(y = `5-9 kat_arasi`, fill = "5-9 kat arasi"),
+           position = "dodge") +
+  geom_col(aes(y = `9-19 kat_arasi`, fill = "9-19 kat arasi"),
+           position = "dodge") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  xlab("Ilce") +
+  ylab("Bina Sayisi") +
+  labs(title = "Ilcelere Gore Kat Sayisi Dagilimi", fill = "Kat Araligi")
+
+p3
+
+```
+
+belediyenufus analysis:
+
+In the analysis of the “belediyenufus” dataset, municipalities have been ranked from highest to lowest population and it has been observed that the most crowded municipality is the Esenyurt Municipality.
+
+```{r}
+
+sirali_ilceler <- belediyenufus %>%
+  arrange(desc(`2019`)) %>%
+  pull(Belediyeler)
+
+# sıralamayı sabitle
+belediye_nufus <- belediyenufus %>%
+  select(Belediyeler, `2019`, `2024`) %>%
+  pivot_longer(
+    cols = c(`2019`, `2024`),
+    names_to = "Yil",
+    values_to = "Nufus"
+  ) %>%
+  mutate(Belediyeler = factor(Belediyeler, levels = sirali_ilceler))
+
+ggplot(belediye_nufus, aes(x = Belediyeler, y = Nufus, fill = Yil)) +
+  geom_col(position = "dodge") +
+  labs(
+    title = "2019 ve 2024 İlçe Nüfusları",
+    x = "İlçeler",
+    y = "Nüfus"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+
+kentseldonusum analysis:
+
+An analysis of individual perceptions regarding the idea of urban transformation of their households have been conducted.
+
+```{r}
+
+evet <- sum(kentseldonusum$Kentsel_Donusum_Ihtiyac_Evet, na.rm = TRUE)
+hayir <- sum(kentseldonusum$Kentsel_Donusum_Ihtiyac_Hayir, na.rm = TRUE)
+
+oranlar <- c(
+  Kentsel_Donusum_Ihtiyac_Evet = evet / (evet + hayir),
+  Kentsel_Donusum_Ihtiyac_Hayir = hayir / (evet + hayir)
+)
+
+print(oranlar)
+
+oranlar_df <- data.frame(
+  kategori = names(oranlar),
+  oran = as.numeric(oranlar)
+)
+
+p4_pie <- ggplot(oranlar_df, aes(x = "", y = oran, fill = kategori)) +
+  geom_col(width = 1) +
+  coord_polar(theta = "y") +
+  geom_text(aes(label = percent(oran)), position = position_stack(vjust = 0.5)) +
+  labs(
+    title = "Need for Urban Transformation",
+    fill = "Response"
+  ) +
+  theme_void()
+
+p4_pie
+
+```
+
+istanbuldepremverisi analysis:
+
+Analyzing this dataset is essential for understanding earthquake activity and assessing potential risks. However, forecasting future earthquake magnitudes remains highly challenging, as earthquakes are inherently random and unpredictable.
+
+```{r}
+
+istanbuldepremverisi <- read_excel("istanbuldepremverisi.xlsx", sheet = "istanbuldepremverisi")
+
+istanbuldepremverisi$time <- as.POSIXct(
+  istanbuldepremverisi$Time,
+  format = "%Y-%m-%dT%H:%M:%OSZ",
+  tz = "UTC"
+)
+
+istanbuldepremverisi$Magnitude <- as.numeric(istanbuldepremverisi$Magnitude)
+
+s5 <- ggplot(istanbuldepremverisi, aes(x = time, y = Magnitude)) +
+  geom_line(linewidth = 0.3, alpha = 0.7) +
+  geom_point(size = 0.8, alpha = 0.6) +
+  labs(
+    title = "Magnitudes of Earthquakes Around Istanbul",
+    x = "Date",
+    y = "Magnitude"
+  ) +
+  theme_minimal() +
+  scale_x_datetime(date_breaks = "1 month", date_labels = "%b %Y") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+s5
+
+s6 <- ggplot(istanbuldepremverisi, aes(x = time, y = `Depth/km`)) +
+  geom_line(linewidth = 0.4) +
+  labs(
+    title = "Depths of Earthquakes Around Istanbul",
+    x = "Date",
+    y = "Depth (km)"
+  ) +
+  theme_minimal() +
+  scale_x_datetime(date_breaks = "1 month", date_labels = "%b %Y") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+s6
+
+```
+
+Display of Earthquakes Occurring Around Istanbul on the Map
+
+```{r}
+library(leaflet)
+
+deprem_konum <- data.frame(
+  name = istanbuldepremverisi$`#EventID`,
+  latitude = istanbuldepremverisi$Latitude,
+  longitude = istanbuldepremverisi$Longitude
+)
+
+istanbul_map <- leaflet(data = deprem_konum) %>%
+  addTiles() %>%
+  setView(lng = 28.9784, lat = 41.0082, zoom = 11) %>%
+  addMarkers(
+    lng = ~longitude,
+    lat = ~latitude,
+    popup = ~name
+  )
+
+istanbul_map
+```
+
+## 3.2 Results
+
+As a result of these analyses, the districts that require the most urgent precautions, where the highest potential loss of life and property may occur, and where response efforts should be planned most carefully were identified as Fatih, Bağcılar, Pendik, Küçükçekmece, and Esenyurt. If the weights used to calculate the overall risk score are determined by experts, the results can be expected to be much more reliable and accurate.
 
 # 4. Results and Key Takeaways
 
-xxxxxx
+Istanbul is the most populous city in Europe, which means that in the event of a disaster such as an earthquake, both the scale of destruction and the demand for assistance would be extremely high.
+
+The aim of this project is to examine structural vulnerability, make district-based assessments, and evaluate the views of people living in Istanbul.
+
+Four datasets were used in this study, and a series of plots were produced and interpreted in detail.
+
+This study identified the districts that are most likely to experience building and infrastructure damage in the event of an earthquake. In this way, it provides guidance on where aid should be directed, how it should be delivered, and to what extent support may be required.
+
+Finally, this study serves both as a guide and as a means of encouraging society to be better prepared for such a disaster.
+
+More specifically, the study has:
+
+identified the areas most prone to earthquake risk and the districts most vulnerable,
+visualized these findings on maps,
+examined the condition of buildings and infrastructure in Istanbul.
+

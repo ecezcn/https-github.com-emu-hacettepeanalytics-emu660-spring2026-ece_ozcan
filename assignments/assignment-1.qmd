@@ -29,10 +29,10 @@ Answer: Industrial Engineers can use data science tools to analyze complex datas
 
 Multiple-Choice Question: According to Cem Vardar, which statement about the Pareto Principle (80-20 rule) in learning data analytics is correct?
 
-A) Industrial Engineers need to learn 100% of data analytics skills to be effective.  
-B) Learning 20% of key data analytics skills can satisfy 80% of the practical needs.  
-C) Only programming skills matter; other tools are not necessary.  
-D) The Pareto Principle does not apply to Industrial Engineers.
+A)  Industrial Engineers need to learn 100% of data analytics skills to be effective.\
+B)  Learning 20% of key data analytics skills can satisfy 80% of the practical needs.\
+C)  Only programming skills matter; other tools are not necessary.\
+D)  The Pareto Principle does not apply to Industrial Engineers.
 
 Answer: B
 

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Project X – [Ece]’s Analytics Lab</title>
+<title>Project Istanbul – [Ece]’s Analytics Lab</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -19,6 +19,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -37,14 +72,10 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-707d8167ce6003fca903bfe2be84ab7f.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-b09ffb0c710b10090e35f4f5c8599541.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-5b22ffe13dd2aa798062e3956142f8dd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-b09ffb0c710b10090e35f4f5c8599541.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-73da95f1134fd7e133c602a1278d5084.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -72,174 +103,32 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<link href="site_libs/htmltools-fill-0.5.9/fill.css" rel="stylesheet">
+
+<script src="site_libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+
+<link href="site_libs/leaflet-1.3.1/leaflet.css" rel="stylesheet">
+
+<script src="site_libs/leaflet-1.3.1/leaflet.js"></script>
+
+<link href="site_libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet">
+
+<script src="site_libs/proj4-2.6.2/proj4.min.js"></script>
+
+<script src="site_libs/Proj4Leaflet-1.0.1/proj4leaflet.js"></script>
+
+<link href="site_libs/rstudio_leaflet-1.3.1/rstudio_leaflet.css" rel="stylesheet">
+
+<script src="site_libs/leaflet-binding-2.2.3/leaflet.js"></script>
+
 
 
 <link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="docked nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
-    const toggleBodyColorMode = (bsSheetEl) => {
-      const mode = bsSheetEl.getAttribute("data-mode");
-      const bodyEl = window.document.querySelector("body");
-      if (mode === "dark") {
-        bodyEl.classList.add("quarto-dark");
-        bodyEl.classList.remove("quarto-light");
-      } else {
-        bodyEl.classList.add("quarto-light");
-        bodyEl.classList.remove("quarto-dark");
-      }
-    }
-    const toggleBodyColorPrimary = () => {
-      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
-      if (bsSheetEl) {
-        toggleBodyColorMode(bsSheetEl);
-      }
-    }
-    const setColorSchemeToggle = (alternate) => {
-      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
-      for (let i=0; i < toggles.length; i++) {
-        const toggle = toggles[i];
-        if (toggle) {
-          if (alternate) {
-            toggle.classList.add("alternate");
-          } else {
-            toggle.classList.remove("alternate");
-          }
-        }
-      }
-    };
-    const toggleColorMode = (alternate) => {
-      // Switch the stylesheets
-      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
-      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
-      manageTransitions('#quarto-margin-sidebar .nav-link', false);
-      if (alternate) {
-        // note: dark is layered on light, we don't disable primary!
-        enableStylesheet(alternateStylesheets);
-        for (const sheetNode of alternateStylesheets) {
-          if (sheetNode.id === "quarto-bootstrap") {
-            toggleBodyColorMode(sheetNode);
-          }
-        }
-      } else {
-        disableStylesheet(alternateStylesheets);
-        enableStylesheet(primaryStylesheets)
-        toggleBodyColorPrimary();
-      }
-      manageTransitions('#quarto-margin-sidebar .nav-link', true);
-      // Switch the toggles
-      setColorSchemeToggle(alternate)
-      // Hack to workaround the fact that safari doesn't
-      // properly recolor the scrollbar when toggling (#1455)
-      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
-        manageTransitions("body", false);
-        window.scrollTo(0, 1);
-        setTimeout(() => {
-          window.scrollTo(0, 0);
-          manageTransitions("body", true);
-        }, 40);
-      }
-    }
-    const disableStylesheet = (stylesheets) => {
-      for (let i=0; i < stylesheets.length; i++) {
-        const stylesheet = stylesheets[i];
-        stylesheet.rel = 'disabled-stylesheet';
-      }
-    }
-    const enableStylesheet = (stylesheets) => {
-      for (let i=0; i < stylesheets.length; i++) {
-        const stylesheet = stylesheets[i];
-        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
-          stylesheet.rel = 'stylesheet';
-        }
-      }
-    }
-    const manageTransitions = (selector, allowTransitions) => {
-      const els = window.document.querySelectorAll(selector);
-      for (let i=0; i < els.length; i++) {
-        const el = els[i];
-        if (allowTransitions) {
-          el.classList.remove('notransition');
-        } else {
-          el.classList.add('notransition');
-        }
-      }
-    }
-    const isFileUrl = () => {
-      return window.location.protocol === 'file:';
-    }
-    const hasAlternateSentinel = () => {
-      let styleSentinel = getColorSchemeSentinel();
-      if (styleSentinel !== null) {
-        return styleSentinel === "alternate";
-      } else {
-        return false;
-      }
-    }
-    const setStyleSentinel = (alternate) => {
-      const value = alternate ? "alternate" : "default";
-      if (!isFileUrl()) {
-        window.localStorage.setItem("quarto-color-scheme", value);
-      } else {
-        localAlternateSentinel = value;
-      }
-    }
-    const getColorSchemeSentinel = () => {
-      if (!isFileUrl()) {
-        const storageValue = window.localStorage.getItem("quarto-color-scheme");
-        return storageValue != null ? storageValue : localAlternateSentinel;
-      } else {
-        return localAlternateSentinel;
-      }
-    }
-    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
-      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
-      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
-      let newTheme = '';
-      if(authorPrefersDark) {
-        newTheme = isAlternate ? baseTheme : alternateTheme;
-      } else {
-        newTheme = isAlternate ? alternateTheme : baseTheme;
-      }
-      const changeGiscusTheme = () => {
-        // From: https://github.com/giscus/giscus/issues/336
-        const sendMessage = (message) => {
-          const iframe = document.querySelector('iframe.giscus-frame');
-          if (!iframe) return;
-          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
-        }
-        sendMessage({
-          setConfig: {
-            theme: newTheme
-          }
-        });
-      }
-      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
-      if (isGiscussLoaded) {
-        changeGiscusTheme();
-      }
-    };
-    const authorPrefersDark = false;
-    const darkModeDefault = authorPrefersDark;
-      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
-      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
-    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
-    // Dark / light mode switch
-    window.quartoToggleColorScheme = () => {
-      // Read the current dark / light value
-      let toAlternate = !hasAlternateSentinel();
-      toggleColorMode(toAlternate);
-      setStyleSentinel(toAlternate);
-      toggleGiscusIfUsed(toAlternate, darkModeDefault);
-      window.dispatchEvent(new Event('resize'));
-    };
-    // Switch to dark mode if need be
-    if (hasAlternateSentinel()) {
-      toggleColorMode(true);
-    } else {
-      toggleColorMode(false);
-    }
-  </script>
+<body class="docked nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -288,10 +177,9 @@ ul.task-list li input[type="checkbox"] {
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools tools-wide">
-    <a href="https://twitter.com" title="" class="quarto-navigation-tool px-1" aria-label=""><i class="bi bi-github"></i></a>
+    <a href="https://github.com/ecezcn" title="" class="quarto-navigation-tool px-1" aria-label=""><i class="bi bi-github"></i></a>
     <a href="https://twitter.com" title="" class="quarto-navigation-tool px-1" aria-label=""><i class="bi bi-twitter"></i></a>
-    <a href="https://linkedin.com" title="" class="quarto-navigation-tool px-1" aria-label=""><i class="bi bi-linkedin"></i></a>
-  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+    <a href="https://www.linkedin.com/in/ece--ozcan/" title="" class="quarto-navigation-tool px-1" aria-label=""><i class="bi bi-linkedin"></i></a>
 </div>
       </div> <!-- /container-fluid -->
     </nav>
@@ -315,9 +203,7 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#analysis" id="toc-analysis" class="nav-link" data-scroll-target="#analysis">3. Analysis</a>
   <ul class="collapse">
   <li><a href="#exploratory-data-analysis" id="toc-exploratory-data-analysis" class="nav-link" data-scroll-target="#exploratory-data-analysis">3.1 Exploratory Data Analysis</a></li>
-  <li><a href="#trend-analysis" id="toc-trend-analysis" class="nav-link" data-scroll-target="#trend-analysis">3.2 Trend Analysis</a></li>
-  <li><a href="#model-fitting" id="toc-model-fitting" class="nav-link" data-scroll-target="#model-fitting">3.3 Model Fitting</a></li>
-  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">3.4 Results</a></li>
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">3.2 Results</a></li>
   </ul></li>
   <li><a href="#results-and-key-takeaways" id="toc-results-and-key-takeaways" class="nav-link" data-scroll-target="#results-and-key-takeaways">4. Results and Key Takeaways</a></li>
   </ul>
@@ -330,10 +216,9 @@ ul.task-list li input[type="checkbox"] {
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Project X</h1>
+<h1 class="title">Project Istanbul</h1>
 </div>
 
 
@@ -354,51 +239,499 @@ ul.task-list li input[type="checkbox"] {
 <p>Keep an eye on this space to stay updated with my project activities.</p>
 <section id="project-overview-and-scope" class="level1">
 <h1>1. Project Overview and Scope</h1>
-<p>xxxxxx</p>
+<p>Istanbul is the most populous city in Europe. Consequently, in the event of a disaster such as an earthquake, both the scale of potential damage and the demand for assistance would be substantial.</p>
+<p>This project focuses on Istanbul, a city widely expected to experience a major earthquake and considerable damage. The objective is not only to analyze buildings and residential areas in terms of structural risk and provide district-level assessments, but also to examine the perceptions of residents living in Istanbul and to compare these findings with the analytical results.</p>
+<p>To achieve this, four different datasets were utilized, and a variety of graphs were generated and interpreted in detail to derive meaningful insights.</p>
 </section>
 <section id="data" class="level1">
 <h1>2. Data</h1>
-<p>xxxxxx</p>
 <section id="data-source" class="level2">
 <h2 class="anchored" data-anchor-id="data-source">2.1 Data Source</h2>
-<p>xxxxxx</p>
+<p><a href="https://data.ibb.gov.tr/dataset/deprem-senaryosu-analiz-sonuclari/resource/9c3ac492-de4b-4245-b418-7ad3df67a193">Deprem Senaryosu Analiz Sonuçları</a></p>
+<p><a href="https://data.ibb.gov.tr/dataset/istanbul-da-son-bir-yilda-gerceklesen-depremler/resource/32904f60-8091-4dc3-b527-351dca6c1c22">İstanbul Çevresinde Gerçekleşen Depremler 2019-2020</a></p>
+<p><a href="https://data.ibb.gov.tr/dataset/belediye-nufuslari-veri-seti#">2019-2024 Yılları Belediye Nüfusları</a></p>
+<p><a href="https://data.ibb.gov.tr/dataset/mahalle-bazli-bina-analiz-verisi/resource/cef193d5-0bd2-4e8d-8a69-275c50288875">2017 Mahalle Bazlı Bina Sayıları</a></p>
+<p><a href="https://data.ibb.gov.tr/dataset/vdym-ilce-bazinda-hanelerdeki-kentsel-donusum-fikri-bireysel-ongoruleri/resource/2683ee8b-9bc3-45cf-a115-49b285851317">VDYM İlçe Bazında Hanelerdeki Kentsel Dönüşüm Fikri Bireysel Öngörüleri</a> is a dataset about the opinions of households about the idea of urban transformation on a district basis.</p>
+<p>All this data taken from <a href="https://data.ibb.gov.tr/dataset">İstanbul Büyükşehir Belediyesi Açık Veri Portalı</a></p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">Sys.setlocale</span>(<span class="st">"LC_CTYPE"</span>, <span class="st">"Turkish_Turkey.1254"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in Sys.setlocale("LC_CTYPE", "Turkish_Turkey.1254"): İşletim Sistemi
+yereli "Turkish_Turkey.1254" e ayarlama isteğinin gerçekleştirelemeyeceğini
+raporladı</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] ""</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">#setwd("C:/Users/Administrator/Documents/GitHub/emu660-spring2026-ecezcn")</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>depremsenaryo <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"depremsenaryo.xlsx"</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>mahbinasayi <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"mahbinasayi.xlsx"</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>istanbuldepremverisi <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"istanbuldepremverisi.xlsx"</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>belediyenufus <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"belediyenufus.xlsx"</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>kentseldonusum <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"kentseldonusum.xlsx"</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(depremsenaryo, mahbinasayi, istanbuldepremverisi, belediyenufus, kentseldonusum,</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>     <span class="at">file =</span> <span class="st">"istanbul_deprem_verileri.RData"</span>)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>fix_text2 <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.character</span>(x)) <span class="fu">return</span>(x)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  x <span class="ot">&lt;-</span> <span class="fu">as.character</span>(x)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  x <span class="ot">&lt;-</span> <span class="fu">iconv</span>(x, <span class="at">from =</span> <span class="st">""</span>, <span class="at">to =</span> <span class="st">"UTF-8"</span>, <span class="at">sub =</span> <span class="st">""</span>)</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  x <span class="ot">&lt;-</span> <span class="fu">trimws</span>(x)</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  x</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>depremsenaryo[] <span class="ot">&lt;-</span> <span class="fu">lapply</span>(depremsenaryo, fix_text2)</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>mahbinasayi[] <span class="ot">&lt;-</span> <span class="fu">lapply</span>(mahbinasayi, fix_text2)</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>istanbuldepremverisi[] <span class="ot">&lt;-</span> <span class="fu">lapply</span>(istanbuldepremverisi, fix_text2)</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>belediyenufus[] <span class="ot">&lt;-</span> <span class="fu">lapply</span>(belediyenufus, fix_text2)</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>kentseldonusum[] <span class="ot">&lt;-</span> <span class="fu">lapply</span>(kentseldonusum, fix_text2)</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(depremsenaryo)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>tibble [959 × 15] (S3: tbl_df/tbl/data.frame)
+ $ ilce_adi                    : chr [1:959] "ADALAR" "ADALAR" "ADALAR" "ADALAR" ...
+ $ mahalle_adi                 : chr [1:959] "BURGAZADA" "HEYBELİADA" "KINALIADA" "MADEN" ...
+ $ mahalle_koy_uavt            : num [1:959] 40139 40142 40143 40140 40141 ...
+ $ cok_agir_hasarli_bina_sayisi: num [1:959] 54 101 53 104 101 1 2 1 1 1 ...
+ $ agir_hasarli_bina_sayisi    : num [1:959] 99 175 97 192 180 3 13 6 6 5 ...
+ $ orta_hasarli_bina_sayisi    : num [1:959] 256 423 287 483 445 21 108 51 49 23 ...
+ $ hafif_hasarli_bina_sayisi   : num [1:959] 241 393 302 484 422 57 371 199 129 65 ...
+ $ can_kaybi_sayisi            : num [1:959] 8 25 5 22 16 0 0 0 0 0 ...
+ $ agir_yarali_sayisi          : num [1:959] 6 21 3 18 13 0 0 0 0 0 ...
+ $ hastanede_tedavi_sayisi     : num [1:959] 24 66 15 64 48 1 8 2 2 0 ...
+ $ hafif_yarali_sayisi         : num [1:959] 42 113 27 113 83 3 26 10 8 0 ...
+ $ dogalgaz_boru_hasari        : num [1:959] 0 1 0 1 1 0 1 0 0 0 ...
+ $ icme_suyu_boru_hasari       : num [1:959] 0 1 1 1 2 0 1 1 0 0 ...
+ $ atik_su_boru_hasari         : num [1:959] 1 2 1 2 2 0 1 1 0 0 ...
+ $ gecici_barinma              : num [1:959] 398 763 420 847 687 89 659 273 209 26 ...</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(mahbinasayi)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>tibble [959 × 9] (S3: tbl_df/tbl/data.frame)
+ $ ilce_adi       : chr [1:959] "ADALAR" "ADALAR" "ADALAR" "ADALAR" ...
+ $ mahalle_adi    : chr [1:959] "BURGAZADA" "HEYBELİADA" "KINALIADA" "MADEN" ...
+ $ mahalle_uavt   : num [1:959] 40139 40142 40143 40140 40141 ...
+ $ 1980_oncesi    : num [1:959] 433 836 610 863 842 0 0 0 0 0 ...
+ $ 1980-2000_arasi: num [1:959] 214 347 244 510 426 244 1360 685 565 332 ...
+ $ 2000_sonrasi   : num [1:959] 173 212 158 308 217 121 845 589 216 184 ...
+ $ 1-4 kat_arasi  : num [1:959] 802 1359 923 1637 1434 ...
+ $ 5-9 kat_arasi  : num [1:959] 18 36 89 44 51 12 555 470 27 1 ...
+ $ 9-19 kat_arasi : num [1:959] 0 0 0 0 0 0 3 7 0 0 ...</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(istanbuldepremverisi)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>tibble [349 × 8] (S3: tbl_df/tbl/data.frame)
+ $ #EventID         : chr [1:349] "20200204_0000090" "20200204_0000082" "20200204_0000067" "20200204_0000046" ...
+ $ Time             : chr [1:349] "2020-02-04T10:17:09.4Z" "2020-02-04T08:43:16.0Z" "2020-02-04T06:13:29.2Z" "2020-02-04T03:42:21.5Z" ...
+ $ Latitude         : num [1:349] 39 39 38.4 38.4 39.1 ...
+ $ Longitude        : num [1:349] 27.9 27.9 25.5 25.5 27.8 ...
+ $ Depth/km         : num [1:349] 6 10 15 17 9 12 10 2 7 9 ...
+ $ MagType          : chr [1:349] "ml" "ml" "ml" "ml" ...
+ $ Magnitude        : num [1:349] 3.4 4.1 3.3 3.3 3.3 3.4 3.4 3.3 4 3.5 ...
+ $ EventLocationName: chr [1:349] "WESTERN TURKEY" "WESTERN TURKEY" "AEGEAN SEA" "AEGEAN SEA" ...</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(belediyenufus)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>tibble [39 × 7] (S3: tbl_df/tbl/data.frame)
+ $ Belediyeler: chr [1:39] "Adalar Belediyesi" "Arnavutköy Belediyesi" "Ataşehir Belediyesi" "Avcılar Belediyesi" ...
+ $ 2019       : num [1:39] 15238 282488 425094 448882 745125 ...
+ $ 2020       : num [1:39] 16033 296709 422594 436897 737206 ...
+ $ 2021       : num [1:39] 16372 312023 427217 457981 744351 ...
+ $ 2022       : num [1:39] 16690 326452 423127 452132 740069 ...
+ $ 2023       : num [1:39] 16325 336062 416529 437221 719071 ...
+ $ 2024       : num [1:39] 16979 344868 414866 440934 713594 ...</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(kentseldonusum)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>tibble [39 × 4] (S3: tbl_df/tbl/data.frame)
+ $ _id                          : num [1:39] 1 2 3 4 5 6 7 8 9 10 ...
+ $ Ilce                         : chr [1:39] "ADALAR" "ARNAVUTKÖY" "ATAŞEHİR" "AVCILAR" ...
+ $ Kentsel_Donusum_Ihtiyac_Evet : num [1:39] 40 100 457 240 607 536 263 59 190 158 ...
+ $ Kentsel_Donusum_Ihtiyac_Hayir: num [1:39] 319 683 939 1148 1427 ...</code></pre>
+</div>
+</div>
 </section>
 <section id="general-information-about-data" class="level2">
 <h2 class="anchored" data-anchor-id="general-information-about-data">2.2 General Information About Data</h2>
-<p>xxxxxx</p>
+<p><a href="https://data.ibb.gov.tr/dataset/deprem-senaryosu-analiz-sonuclari/resource/9c3ac492-de4b-4245-b418-7ad3df67a193">Deprem Senaryosu Analiz Sonuçları</a> is a dataset that contains the results of an earthquake scenario analysis. Its columns mainly include information on the number of buildings by damage level, the number of people by vital status, and pipe damage.</p>
+<p><a href="https://data.ibb.gov.tr/dataset/istanbul-da-son-bir-yilda-gerceklesen-depremler/resource/32904f60-8091-4dc3-b527-351dca6c1c22">İstanbul Çevresinde Gerçekleşen Depremler 2019-2020</a> is a dataset on earthquakes that occurred around Istanbul. Each row represents a single earthquake, and the columns provide various details about these events.</p>
+<p><a href="https://data.ibb.gov.tr/dataset/belediye-nufuslari-veri-seti#">2019-2024 Yılları Belediye Nüfusları</a> is a dataset that provides population information for each municipality.</p>
+<p><a href="https://data.ibb.gov.tr/dataset/mahalle-bazli-bina-analiz-verisi/resource/cef193d5-0bd2-4e8d-8a69-275c50288875">2017 Mahalle Bazlı Bina Sayıları</a> is a dataset about buildings at the neighbourhood level. Each row represents a neighbourhood, and the columns mainly include information about the construction year of buildings and the number of floors.</p>
 </section>
 <section id="reason-of-choice" class="level2">
 <h2 class="anchored" data-anchor-id="reason-of-choice">2.3 Reason of Choice</h2>
-<p>xxxxxx</p>
+<p>Istanbul is widely regarded as a city facing a very high earthquake risk, with the potential for severe loss of life and property. Experts frequently warn in the media that a major earthquake, estimated to range between magnitudes 7.2 and 7.6, could strike the city. I chose to focus on this highly relevant issue in order to inform the public through a comprehensive analysis, raise awareness, and encourage precautionary measures that could help minimize the impact of such a disaster.</p>
 </section>
 <section id="preprocessing" class="level2">
 <h2 class="anchored" data-anchor-id="preprocessing">2.4 Preprocessing</h2>
-<p>xxxxxx</p>
+<p>There are 4 datasets which were downloaded from the sources mentioned in the section&nbsp;2.1 Data Source. The&nbsp;.RData&nbsp;file can be downloaded to review.</p>
 </section>
 </section>
 <section id="analysis" class="level1">
 <h1>3. Analysis</h1>
-<p>xxxxxx</p>
 <section id="exploratory-data-analysis" class="level2">
 <h2 class="anchored" data-anchor-id="exploratory-data-analysis">3.1 Exploratory Data Analysis</h2>
-<p>xxxxxx</p>
-</section>
-<section id="trend-analysis" class="level2">
-<h2 class="anchored" data-anchor-id="trend-analysis">3.2 Trend Analysis</h2>
-<p>xxxxxx</p>
-</section>
-<section id="model-fitting" class="level2">
-<h2 class="anchored" data-anchor-id="model-fitting">3.3 Model Fitting</h2>
-<p>xxxxxx</p>
+<p>“depremsenaryo” analysis:</p>
+<p>The analysis began with the “depremsenaryo” dataset.The top three districts in terms of “Loss of Life” are Bahçelievler, Bakırköy, and Küçükçekmece.</p>
+<p>Bahçelievler, Bakırköy, Fatih and Küçükçekmece on the “Ağır Yaralı” plot,</p>
+<p>Bahçelievler, Bakırköy and Küçükçekmece on the “Hastanede Tedavi” and “Hafif Yaralı” plot were attention-grabbing.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#install.packages("ggplot2")</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>depremsenaryo <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"depremsenaryo.xlsx"</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>top_data <span class="ot">&lt;-</span> depremsenaryo <span class="sc">%&gt;%</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(can_kaybi_sayisi)) <span class="sc">%&gt;%</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(top_data, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(ilce_adi, can_kaybi_sayisi),</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>                     <span class="at">y =</span> can_kaybi_sayisi)) <span class="sc">+</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">fill =</span> <span class="st">"firebrick"</span>) <span class="sc">+</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> can_kaybi_sayisi), <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.1</span>) <span class="sc">+</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="project_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>s2<span class="ot">&lt;-</span>depremsenaryo<span class="sc">%&gt;%</span><span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>ilce_adi, <span class="at">y=</span>agir_yarali_sayisi))<span class="sc">+</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()<span class="sc">+</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x=</span><span class="fu">element_text</span>(<span class="at">angle=</span><span class="dv">90</span>, <span class="at">hjust=</span><span class="dv">1</span>))<span class="sc">+</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"İlçe Adı"</span>)<span class="sc">+</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Ağır Yaralı Sayısı"</span>)<span class="sc">+</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"İlçe Bazında Ağır Yaralı Sayısı Dağılımı"</span>)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>s2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="project_files/figure-html/unnamed-chunk-3-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>s3<span class="ot">&lt;-</span>depremsenaryo<span class="sc">%&gt;%</span><span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>ilce_adi, <span class="at">y=</span>hastanede_tedavi_sayisi))<span class="sc">+</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()<span class="sc">+</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x=</span><span class="fu">element_text</span>(<span class="at">angle=</span><span class="dv">90</span>, <span class="at">hjust=</span><span class="dv">1</span>))<span class="sc">+</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"İlçe Adı"</span>)<span class="sc">+</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Hastanede Tedavi Sayısı"</span>)<span class="sc">+</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"İlçe Bazında Hastanede Tedavi Sayısı Dağılımı"</span>)</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>s3</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="project_files/figure-html/unnamed-chunk-3-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>s4<span class="ot">&lt;-</span>depremsenaryo<span class="sc">%&gt;%</span><span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>ilce_adi, <span class="at">y=</span>hafif_yarali_sayisi))<span class="sc">+</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()<span class="sc">+</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x=</span><span class="fu">element_text</span>(<span class="at">angle=</span><span class="dv">90</span>, <span class="at">hjust=</span><span class="dv">1</span>))<span class="sc">+</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"İlçe Adı"</span>)<span class="sc">+</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Hafif Yaralı Sayısı"</span>)<span class="sc">+</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"İlçe Bazında Hafif Yaralı Sayısı Dağılımı"</span>)</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>s4</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="project_files/figure-html/unnamed-chunk-3-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>p1<span class="ot">&lt;-</span>depremsenaryo<span class="sc">%&gt;%</span><span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>ilce_adi, <span class="at">y=</span>gecici_barinma))<span class="sc">+</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()<span class="sc">+</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x=</span><span class="fu">element_text</span>(<span class="at">angle=</span><span class="dv">90</span>, <span class="at">hjust=</span><span class="dv">1</span>))<span class="sc">+</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"İlçe Adı"</span>)<span class="sc">+</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Geçici Barınma"</span>)<span class="sc">+</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"İlçe Bazında Geçici Barınma Dağılımı"</span>)</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>p1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="project_files/figure-html/unnamed-chunk-3-5.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The analysis continued with the “mahbinasayi” dataset, evaluating buildings based on their construction year and number of floors.</p>
+<p>Although the data is based on neighborhoods, the analyses have been done based on districts.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(mahbinasayi, <span class="fu">aes</span>(<span class="at">x =</span> ilce_adi)) <span class="sc">+</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">y =</span> <span class="st">`</span><span class="at">1980_oncesi</span><span class="st">`</span>, <span class="at">fill =</span> <span class="st">"1980 Oncesi"</span>),</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">position =</span> <span class="st">"dodge"</span>) <span class="sc">+</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">y =</span> <span class="st">`</span><span class="at">1980-2000_arasi</span><span class="st">`</span>, <span class="at">fill =</span> <span class="st">"1980-2000 Arasi"</span>),</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">position =</span> <span class="st">"dodge"</span>) <span class="sc">+</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">y =</span> <span class="st">`</span><span class="at">2000_sonrasi</span><span class="st">`</span>, <span class="at">fill =</span> <span class="st">"2000 Sonrasi"</span>),</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>           <span class="at">position =</span> <span class="st">"dodge"</span>) <span class="sc">+</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">90</span>, <span class="at">hjust =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Ilce"</span>) <span class="sc">+</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Bina Sayisi"</span>) <span class="sc">+</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Ilcelere Gore Bina Yasi Dagilimi"</span>, <span class="at">fill =</span> <span class="st">"Bina Donemi"</span>)</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>p2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="project_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>“ilçe bazında kat sayısına göre bina sayıları”:</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>p3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(mahbinasayi, <span class="fu">aes</span>(<span class="at">x =</span> ilce_adi)) <span class="sc">+</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">y =</span> <span class="st">`</span><span class="at">1-4 kat_arasi</span><span class="st">`</span>, <span class="at">fill =</span> <span class="st">"1-4 kat arasi"</span>),</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">position =</span> <span class="st">"dodge"</span>) <span class="sc">+</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">y =</span> <span class="st">`</span><span class="at">5-9 kat_arasi</span><span class="st">`</span>, <span class="at">fill =</span> <span class="st">"5-9 kat arasi"</span>),</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">position =</span> <span class="st">"dodge"</span>) <span class="sc">+</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">y =</span> <span class="st">`</span><span class="at">9-19 kat_arasi</span><span class="st">`</span>, <span class="at">fill =</span> <span class="st">"9-19 kat arasi"</span>),</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>           <span class="at">position =</span> <span class="st">"dodge"</span>) <span class="sc">+</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">90</span>, <span class="at">hjust =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Ilce"</span>) <span class="sc">+</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Bina Sayisi"</span>) <span class="sc">+</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Ilcelere Gore Kat Sayisi Dagilimi"</span>, <span class="at">fill =</span> <span class="st">"Kat Araligi"</span>)</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>p3</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="project_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>belediyenufus analysis:</p>
+<p>In the analysis of the “belediyenufus” dataset, municipalities have been ranked from highest to lowest population and it has been observed that the most crowded municipality is the Esenyurt Municipality.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>sirali_ilceler <span class="ot">&lt;-</span> belediyenufus <span class="sc">%&gt;%</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(<span class="st">`</span><span class="at">2019</span><span class="st">`</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(Belediyeler)</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="co"># sıralamayı sabitle</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>belediye_nufus <span class="ot">&lt;-</span> belediyenufus <span class="sc">%&gt;%</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Belediyeler, <span class="st">`</span><span class="at">2019</span><span class="st">`</span>, <span class="st">`</span><span class="at">2024</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> <span class="fu">c</span>(<span class="st">`</span><span class="at">2019</span><span class="st">`</span>, <span class="st">`</span><span class="at">2024</span><span class="st">`</span>),</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="st">"Yil"</span>,</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"Nufus"</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Belediyeler =</span> <span class="fu">factor</span>(Belediyeler, <span class="at">levels =</span> sirali_ilceler))</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(belediye_nufus, <span class="fu">aes</span>(<span class="at">x =</span> Belediyeler, <span class="at">y =</span> Nufus, <span class="at">fill =</span> Yil)) <span class="sc">+</span></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">"dodge"</span>) <span class="sc">+</span></span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"2019 ve 2024 İlçe Nüfusları"</span>,</span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"İlçeler"</span>,</span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Nüfus"</span></span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">90</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="project_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>kentseldonusum analysis:</p>
+<p>An analysis of individual perceptions regarding the idea of urban transformation of their households have been conducted.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>evet <span class="ot">&lt;-</span> <span class="fu">sum</span>(kentseldonusum<span class="sc">$</span>Kentsel_Donusum_Ihtiyac_Evet, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>hayir <span class="ot">&lt;-</span> <span class="fu">sum</span>(kentseldonusum<span class="sc">$</span>Kentsel_Donusum_Ihtiyac_Hayir, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>oranlar <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Kentsel_Donusum_Ihtiyac_Evet =</span> evet <span class="sc">/</span> (evet <span class="sc">+</span> hayir),</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Kentsel_Donusum_Ihtiyac_Hayir =</span> hayir <span class="sc">/</span> (evet <span class="sc">+</span> hayir)</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(oranlar)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> Kentsel_Donusum_Ihtiyac_Evet Kentsel_Donusum_Ihtiyac_Hayir 
+                    0.2255722                     0.7744278 </code></pre>
+</div>
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>oranlar_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">kategori =</span> <span class="fu">names</span>(oranlar),</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">oran =</span> <span class="fu">as.numeric</span>(oranlar)</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>p4_pie <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(oranlar_df, <span class="fu">aes</span>(<span class="at">x =</span> <span class="st">""</span>, <span class="at">y =</span> oran, <span class="at">fill =</span> kategori)) <span class="sc">+</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_polar</span>(<span class="at">theta =</span> <span class="st">"y"</span>) <span class="sc">+</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">percent</span>(oran)), <span class="at">position =</span> <span class="fu">position_stack</span>(<span class="at">vjust =</span> <span class="fl">0.5</span>)) <span class="sc">+</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Need for Urban Transformation"</span>,</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"Response"</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>p4_pie</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="project_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>istanbuldepremverisi analysis:</p>
+<p>Analyzing this dataset is essential for understanding earthquake activity and assessing potential risks. However, forecasting future earthquake magnitudes remains highly challenging, as earthquakes are inherently random and unpredictable.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>istanbuldepremverisi <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"istanbuldepremverisi.xlsx"</span>, <span class="at">sheet =</span> <span class="st">"istanbuldepremverisi"</span>)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>istanbuldepremverisi<span class="sc">$</span>time <span class="ot">&lt;-</span> <span class="fu">as.POSIXct</span>(</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  istanbuldepremverisi<span class="sc">$</span>Time,</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">format =</span> <span class="st">"%Y-%m-%dT%H:%M:%OSZ"</span>,</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">tz =</span> <span class="st">"UTC"</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>istanbuldepremverisi<span class="sc">$</span>Magnitude <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(istanbuldepremverisi<span class="sc">$</span>Magnitude)</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>s5 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(istanbuldepremverisi, <span class="fu">aes</span>(<span class="at">x =</span> time, <span class="at">y =</span> Magnitude)) <span class="sc">+</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">0.3</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">0.8</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Magnitudes of Earthquakes Around Istanbul"</span>,</span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Date"</span>,</span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Magnitude"</span></span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_datetime</span>(<span class="at">date_breaks =</span> <span class="st">"1 month"</span>, <span class="at">date_labels =</span> <span class="st">"%b %Y"</span>) <span class="sc">+</span></span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">90</span>, <span class="at">vjust =</span> <span class="fl">0.5</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>s5</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="project_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>s6 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(istanbuldepremverisi, <span class="fu">aes</span>(<span class="at">x =</span> time, <span class="at">y =</span> <span class="st">`</span><span class="at">Depth/km</span><span class="st">`</span>)) <span class="sc">+</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Depths of Earthquakes Around Istanbul"</span>,</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Date"</span>,</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Depth (km)"</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_datetime</span>(<span class="at">date_breaks =</span> <span class="st">"1 month"</span>, <span class="at">date_labels =</span> <span class="st">"%b %Y"</span>) <span class="sc">+</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>s6</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="project_files/figure-html/unnamed-chunk-8-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Display of Earthquakes Occurring Around Istanbul on the Map</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(leaflet)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'leaflet' was built under R version 4.5.3</code></pre>
+</div>
+<details class="code-fold">
+<summary>Show Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>deprem_konum <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">name =</span> istanbuldepremverisi<span class="sc">$</span><span class="st">`</span><span class="at">#EventID</span><span class="st">`</span>,</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">latitude =</span> istanbuldepremverisi<span class="sc">$</span>Latitude,</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">longitude =</span> istanbuldepremverisi<span class="sc">$</span>Longitude</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>istanbul_map <span class="ot">&lt;-</span> <span class="fu">leaflet</span>(<span class="at">data =</span> deprem_konum) <span class="sc">%&gt;%</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">addTiles</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">setView</span>(<span class="at">lng =</span> <span class="fl">28.9784</span>, <span class="at">lat =</span> <span class="fl">41.0082</span>, <span class="at">zoom =</span> <span class="dv">11</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">addMarkers</span>(</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">lng =</span> <span class="sc">~</span>longitude,</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">lat =</span> <span class="sc">~</span>latitude,</span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">popup =</span> <span class="sc">~</span>name</span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>istanbul_map</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div class="leaflet html-widget html-fill-item" id="htmlwidget-ba7adbb455b1e4d9ec55" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-ba7adbb455b1e4d9ec55">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addTiles","args":["https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"attribution":"&copy; <a href=\"https://openstreetmap.org/copyright/\">OpenStreetMap<\/a>,  <a href=\"https://opendatacommons.org/licenses/odbl/\">ODbL<\/a>"}]},{"method":"addMarkers","args":[[38.98,38.98,38.42,38.4,39.08,38.98,39,39,39,38.99,39,38.99,38.99,38.99,38.99,38.99,38.99,38.99,38.98,39.08,39.09,39.08,39.07,40.86,39,39,38.96,39.08,39.08,38.98,39.02,39.02,39.09,39.11,39.01,39.04,39.1,39.1,39.08,39,39.01,39.05,39.1,39.1,39.01,39.09,39.05,39.08,39.09,39.06,39.09,39.02,39.1,39.01,40.12,39.01,38.99,39.05,39.07,39.06,39.08,39.07,41.24,39.05,38.98,39.03,39.06,39.08,39.01,39.01,39.02,39.02,39.03,39.03,39,39.04,39.02,38.99,39,39.02,39.05,39,39.02,39.02,39.07,39.46,39.02,39.06,39.02,39.02,39.06,39.08,39.04,39.09,38.99,39.06,39.01,39.04,39.07,39.06,39.07,39.05,39.02,39.01,38.98,39.07,38.99,39.02,39.11,39.01,39.01,39.01,39.04,39,39,39.08,39.06,39.06,39.02,39.08,39.03,39.06,39.07,39.02,39.07,39.09,39.07,39,39.04,39.02,39,38.99,39.04,39.04,39.01,39.09,39.06,39.08,39.03,39.02,39.07,39.02,39.02,39.06,39.04,39.04,39.05,38.99,39.07,39.05,39.02,39.07,39.03,39.08,39.05,39.07,39.08,38.99,39.02,39,39.02,39.09,39.01,39.07,39,39.06,39.06,38.86,38.87,38.88,39.05,39.06,38.69,40.85,40.7,38.58,40.77,40.01,40.84,39.05,39.06,38.24,39.44,39.45,40.8,38.59,39.14,39.41,39.44,39.46,39.45,39.45,39.45,39.45,39.45,39.45,39.5,39.66,40.74,40.76,40.71,43.42,39.28,39.29,40.76,40.59,39.34,39.36,38.43,38,40.2,38.28,39.63,38.26,39.01,40.73,40.88,39.66,40.88,40.83,39.4,39.43,39.42,39.4,40.69,40.7,40.71,40.7,38.87,40.85,39.2,40.28,40.86,40.7,40.87,40.87,40.42,40.84,40.84,39.66,40.87,40.86,40.84,40.9,40.9,40.85,40.88,39.48,40.87,39.47,40.85,40.87,40.86,39.48,40.88,40.88,40.86,40.86,40.89,40.86,40.84,40.8,40.87,40.85,40.88,40.88,40.87,40.86,40.88,40.87,38.11,41.6,38.2,38.23,38.21,39.62,39.84,39.32,38,38.89,38.72,38.72,38.75,39.3,40.32,40.77,38,39.45,39.46,41.89,38.06,38.02,38.03,38.02,39.28,39.3,38.85,38.47,39.81,38.86,39.48,40.44,39,40.62,38.96,39.72,40.83,39.68,40.75,39.16,39.71,40.72,38.57,39.16,38.68,39.72,39.15,41.43,39.24,39.29,40.73,42.41,40.58,38.85,40.75,39.11,39.16,39.09,39.32,38.92,38.81,39.31,39.32,39.72,39.02,40.85,40.85,43.02,39.33,39.3,39.01,43.11,39.07,39.41,39.42,39.38,38.69,40.69,38.59],[27.86,27.87,25.51,25.53,27.83,27.85,27.86,27.85,27.86,27.86,27.85,27.86,27.86,27.85,27.85,27.86,27.86,27.86,27.87,27.87,27.82,27.82,27.82,28.19,27.85,27.85,25.52,27.83,27.83,25.51,27.84,27.82,27.83,27.83,27.83,27.83,27.83,27.84,27.8,27.86,27.82,27.83,27.87,27.86,27.82,27.81,27.84,27.81,27.85,27.85,27.81,27.81,27.84,27.85,28.92,27.79,27.84,27.82,27.81,27.83,27.83,27.82,29.57,27.81,27.87,27.85,27.82,27.83,27.84,27.86,27.88,27.83,27.85,27.83,27.84,27.83,27.89,27.84,27.84,27.83,27.8,27.86,27.83,27.83,27.76,27.91,27.84,27.84,27.77,27.88,27.83,27.82,27.85,27.84,27.85,27.81,27.84,27.84,27.82,27.82,27.84,27.82,27.9,27.88,27.86,27.84,27.86,27.85,27.83,27.87,27.86,27.83,27.84,27.85,27.86,27.81,27.83,27.85,27.89,27.83,27.85,27.84,27.83,27.83,27.83,27.84,27.83,27.83,27.84,27.83,27.86,27.85,27.85,27.85,27.83,27.83,27.83,27.82,27.86,27.85,27.86,27.85,27.84,27.83,27.84,27.85,27.85,27.86,27.83,27.82,27.84,27.83,27.82,27.85,27.85,27.84,27.83,27.84,27.8,27.86,27.84,27.84,27.88,27.83,27.85,27.85,27.84,27.29,27.3,27.28,27.84,27.84,26.99,28.24,27.4,27.45,29.04,27.78,28.35,27.84,27.83,26.27,27.9,27.92,27.54,27.61,29.07,25.68,27.94,27.94,27.91,27.91,27.92,27.89,27.91,27.94,28.79,25.53,31.51,31.5,27.46,28.71,27.7,27.7,28.97,28.94,28.26,28.34,26.73,27,29.06,26.34,28.62,26.39,26.07,27.39,28.21,26.35,28.26,27.99,25.65,25.68,25.67,25.66,29.26,29.25,29.26,29.26,27,28.23,28.91,27.24,28.3,29.27,28.23,28.24,26.08,28.25,28.26,27.65,28.24,28.29,28.25,28.2,28.2,28.23,28.22,25.82,28.19,25.85,28.26,28.27,28.21,25.84,28.21,28.21,28.25,28.28,28.27,28.24,28.27,28.23,28.19,28.21,28.22,28.2,28.25,28.19,28.21,28.21,26.8,25.33,26.34,26.64,26.32,26.42,28.72,25.52,26.85,26.16,26.53,26.56,26.52,25.89,27.11,27.4,26.88,25.87,25.83,26.51,26.9,26.92,26.87,26.9,27.72,27.7,25.9,27.18,27.23,26.16,25.8,28.06,27.63,28.96,26.02,25.58,27.95,26.47,29.1,27.6,25.6,27.44,30.57,27.57,27.93,25.58,27.6,27.99,25.56,27.71,30.75,31.07,27.13,26.13,27.39,27.65,27.59,30.17,25.54,26.13,27.51,27.93,27.92,25.59,26.04,28.14,28.14,31.38,27.74,27.7,25.99,27.5,26.54,26.3,26.36,26.29,26.9,30.61,31.14],null,null,null,{"interactive":true,"draggable":false,"keyboard":true,"title":"","alt":"","zIndexOffset":0,"opacity":1,"riseOnHover":false,"riseOffset":250},["20200204_0000090","20200204_0000082","20200204_0000067","20200204_0000046","20200204_0000034","20200204_0000028","20200204_0000009","20200204_0000013","20200204_0000010","20200204_0000001","20200203_0000234","20200203_0000210","20200203_0000195","20200203_0000062","20200203_0000040","20200203_0000032","20200202_0000245","20200202_0000219","20200202_0000206","20200202_0000123","20200202_0000066","20200202_0000041","20200202_0000037","20200202_0000014","20200202_0000006","20200202_0000003","20200201_0000172","20200201_0000106","20200201_0000097","20200201_0000089","20200131_0000072","20200130_0000209","20200130_0000123","20200130_0000120","20200130_0000043","20200130_0000035","20200130_0000034","20200129_0000173","20200129_0000090","20200129_0000029","20200128_0000169","20200128_0000133","20200128_0000116","20200128_0000114","20200128_0000108","20200128_0000115","20200128_0000111","20200128_0000099","20200128_0000095","20200128_0000094","20200128_0000090","20200128_0000091","20200128_0000086","20200128_0000073","20200128_0000072","20200128_0000062","20200128_0000050","20200127_0000232","20200127_0000230","20200127_0000208","20200127_0000113","20200127_0000099","20200127_0000085","20200127_0000051","20200126_0000100","20200126_0000093","20200126_0000079","20200126_0000062","20200126_0000041","20200126_0000011","20200125_0000225","20200125_0000222","20200125_0000219","20200125_0000214","20200125_0000188","20200125_0000165","20200125_0000140","20200125_0000112","20200125_0000079","20200125_0000067","20200125_0000086","20200125_0000051","20200125_0000018","20200124_0000222","20200124_0000198","20200124_0000188","20200124_0000141","20200124_0000133","20200124_0000107","20200124_0000068","20200124_0000058","20200124_0000046","20200124_0000016","20200124_0000013","20200124_0000010","20200123_0000262","20200123_0000252","20200123_0000251","20200123_0000248","20200123_0000242","20200123_0000225","20200123_0000223","20200123_0000210","20200123_0000205","20200123_0000154","20200123_0000143","20200123_0000136","20200123_0000131","20200123_0000128","20200123_0000125","20200123_0000118","20200123_0000111","20200123_0000106","20200123_0000100","20200123_0000095","20200123_0000093","20200123_0000090","20200123_0000088","20200123_0000083","20200123_0000072","20200123_0000071","20200123_0000070","20200123_0000067","20200123_0000063","20200123_0000060","20200123_0000057","20200123_0000042","20200123_0000030","20200123_0000032","20200123_0000016","20200123_0000015","20200123_0000013","20200123_0000011","20200123_0000009","20200123_0000003","20200122_0000207","20200122_0000205","20200122_0000193","20200122_0000191","20200122_0000189","20200122_0000177","20200122_0000174","20200122_0000170","20200122_0000169","20200122_0000168","20200122_0000167","20200122_0000165","20200122_0000164","20200122_0000155","20200122_0000153","20200122_0000151","20200122_0000150","20200122_0000149","20200122_0000157","20200122_0000145","20200122_0000147","20200122_0000143","20200122_0000141","20200122_0000140","20200122_0000137","20200122_0000133","20200122_0000132","20200122_0000131","20200122_0000129","20200122_0000134","20200122_0000125","20200122_0000127","20200122_0000097","20200122_0000085","20200122_0000075","20200120_0000010","20200119_0000070","20200112_0000154","20200111_0000067","20200111_0000024","20200106_0000001","20200104_0000083","20200102_0000155","20200102_0000085","20191230_0000104","20191230_0000094","20191230_0000038","20191226_0000018","20191226_0000008","20191224_0000120","20191218_0000106","20191216_0000133","20191216_0000013","20191211_0000075","20191211_0000014","20191211_0000001","20191210_0000126","20191210_0000104","20191210_0000101","20191210_0000100","20191210_0000099","20191209_0000010","20191207_0000128","20191207_0000016","20191206_0000164","20191201_0000012","20191128_0000075","20191126_0000182","20191125_0000103","20191122_0000081","20191122_0000154","20191121_0000084","20191121_0000082","20191121_0000037","20191120_0000018","20191117_0000162","20191110_0000073","20191109_0000146","20191108_0000045","20191104_0000025","20191029_0000113","20191027_0000060","20191027_0000055","20191025_0000112","20191019_0000021","20191012_0000018","20191011_0000019","20191011_0000002","20191010_0000139","20191010_0000113","20191010_0000094","20191010_0000093","20191010_0000091","20191009_0000087","20191009_0000035","20191009_0000002","20191004_0000102","20190930_0000100","20190929_0000037","20190928_0000093","20190928_0000056","20190927_0000101","20190927_0000063","20190927_0000058","20190926_0000196","20190926_0000178","20190926_0000177","20190926_0000146","20190926_0000137","20190926_0000136","20190926_0000134","20190926_0000129","20190926_0000106","20190926_0000105","20190926_0000102","20190926_0000100","20190926_0000097","20190926_0000095","20190926_0000131","20190926_0000082","20190926_0000081","20190926_0000248","20190926_0000075","20190926_0000074","20190926_0000077","20190926_0000072","20190926_0000088","20190926_0000070","20190926_0000058","20190926_0000046","20190925_0000084","20190924_0000054","20190924_0000037","20190924_0000032","20190924_0000029","20190922_0000110","20190922_0000060","20190921_0000033","20190919_0000024","20190916_0000120","20190914_0000057","20190912_0000029","20190910_0000082","20190908_0000065","20190904_0000038","20190903_0000076","20190903_0000046","20190903_0000045","20190901_0000114","20190823_0000042","20190820_0000118","20190815_0000013","20190812_0000085","20190812_0000078","20190810_0000042","20190808_0000065","20190808_0000061","20190808_0000050","20190808_0000045","20190807_0000028","20190807_0000012","20190806_0000117","20190804_0000076","20190731_0000064","20190730_0000144","20190728_0000131","20190719_0000036","20190717_0000199","20190711_0000107","20190710_0000171","20190629_0000004","20190621_0000009","20190617_0000018","20190614_0000087","20190614_0000051","20190613_0000098","20190612_0000100","20190609_0000017","20190607_0000091","20190607_0000034","20190606_0000091","20190606_0000086","20190606_0000013","20190606_0000012","20190603_0000107","20190602_0000075","20190526_0000016","20190525_0000047","20190524_0000100","20190521_0000056","20190521_0000020","20190521_0000011","20190520_0000099","20190519_0000096","20190519_0000032","20190518_0000033","20190512_0000108","20190512_0000139","20190511_0000033","20190510_0000126","20190509_0000078","20190509_0000076","20190508_0000087","20190508_0000031","20190508_0000008","20190503_0000102","20190430_0000089","20190430_0000074","20190430_0000024","20190429_0000132","20190429_0000124","20190428_0000079","20190412_0000074","20190402_0000092"],null,null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"setView":[[41.0082,28.9784],11,[]],"limits":{"lat":[38,43.42],"lng":[25.33,31.51]}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
 </section>
 <section id="results" class="level2">
-<h2 class="anchored" data-anchor-id="results">3.4 Results</h2>
-<p>xxxxxx</p>
+<h2 class="anchored" data-anchor-id="results">3.2 Results</h2>
+<p>As a result of these analyses, the districts that require the most urgent precautions, where the highest potential loss of life and property may occur, and where response efforts should be planned most carefully were identified as Fatih, Bağcılar, Pendik, Küçükçekmece, and Esenyurt. If the weights used to calculate the overall risk score are determined by experts, the results can be expected to be much more reliable and accurate.</p>
 </section>
 </section>
 <section id="results-and-key-takeaways" class="level1">
 <h1>4. Results and Key Takeaways</h1>
-<p>xxxxxx</p>
+<p>Istanbul is the most populous city in Europe, which means that in the event of a disaster such as an earthquake, both the scale of destruction and the demand for assistance would be extremely high.</p>
+<p>The aim of this project is to examine structural vulnerability, make district-based assessments, and evaluate the views of people living in Istanbul.</p>
+<p>Four datasets were used in this study, and a series of plots were produced and interpreted in detail.</p>
+<p>This study identified the districts that are most likely to experience building and infrastructure damage in the event of an earthquake. In this way, it provides guidance on where aid should be directed, how it should be delivered, and to what extent support may be required.</p>
+<p>Finally, this study serves both as a guide and as a means of encouraging society to be better prepared for such a disaster.</p>
+<p>More specifically, the study has:</p>
+<p>identified the areas most prone to earthquake risk and the districts most vulnerable, visualized these findings on maps, examined the condition of buildings and infrastructure in Istanbul.</p>
 
 
 </section>
@@ -406,19 +739,6 @@ ul.task-list li input[type="checkbox"] {
 <a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
-    // Ensure there is a toggle, if there isn't float one in the top right
-    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
-      const a = window.document.createElement('a');
-      a.classList.add('top-right');
-      a.classList.add('quarto-color-scheme-toggle');
-      a.href = "";
-      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
-      const i = window.document.createElement("i");
-      i.classList.add('bi');
-      a.appendChild(i);
-      window.document.body.appendChild(a);
-    }
-    setColorSchemeToggle(hasAlternateSentinel())
     const icon = "";
     const anchorJS = new window.AnchorJS();
     anchorJS.options = {
