@@ -43,40 +43,274 @@ To achieve this, four different datasets were utilized, and a variety of graphs 
 
 All this data taken from [İstanbul Büyükşehir Belediyesi Açık Veri Portalı](https://data.ibb.gov.tr/dataset)
 
+District boundary geometries used for mapping were obtained from [GADM version 4.1](https://gadm.org/download_country.html).
+
 ```{r}
-Sys.setlocale("LC_CTYPE", "Turkish_Turkey.1254")
-
-#setwd("C:/Users/Administrator/Documents/GitHub/emu660-spring2026-ecezcn")
-
+# Import the five raw Excel datasets.
 depremsenaryo <- read_excel("depremsenaryo.xlsx")
 mahbinasayi <- read_excel("mahbinasayi.xlsx")
-istanbuldepremverisi <- read_excel("istanbuldepremverisi.xlsx")
+istanbuldepremverisi <- read_excel(
+  "istanbuldepremverisi.xlsx",
+  sheet = "istanbuldepremverisi"
+)
 belediyenufus <- read_excel("belediyenufus.xlsx")
 kentseldonusum <- read_excel("kentseldonusum.xlsx")
 
-save(depremsenaryo, mahbinasayi, istanbuldepremverisi, belediyenufus, kentseldonusum,
-     file = "istanbul_deprem_verileri.RData")
-
-fix_text2 <- function(x) {
-  if (!is.character(x)) return(x)
-  x <- as.character(x)
-  x <- iconv(x, from = "", to = "UTF-8", sub = "")
-  x <- trimws(x)
-  x
+# Convert character fields to UTF-8 and remove unnecessary whitespace.
+clean_text <- function(x) {
+  x |>
+    enc2utf8() |>
+    str_squish() |>
+    na_if("")
 }
 
-depremsenaryo[] <- lapply(depremsenaryo, fix_text2)
-mahbinasayi[] <- lapply(mahbinasayi, fix_text2)
-istanbuldepremverisi[] <- lapply(istanbuldepremverisi, fix_text2)
-belediyenufus[] <- lapply(belediyenufus, fix_text2)
-kentseldonusum[] <- lapply(kentseldonusum, fix_text2)
+# Create a common district key for later merging.
+clean_district <- function(x) {
+  x |>
+    clean_text() |>
+    str_remove(regex("\\s+Belediyesi$", ignore_case = TRUE)) |>
+    str_to_upper(locale = "tr") |>
+    recode("EYÜP" = "EYÜPSULTAN")
+}
 
-str(depremsenaryo)
-str(mahbinasayi)
-str(istanbuldepremverisi)
-str(belediyenufus)
-str(kentseldonusum)
+depremsenaryo <- depremsenaryo |>
+  mutate(
+    across(where(is.character), clean_text),
+    ilce_adi = clean_district(ilce_adi)
+  ) |>
+  distinct()
 
+mahbinasayi <- mahbinasayi |>
+  mutate(
+    across(where(is.character), clean_text),
+    ilce_adi = clean_district(ilce_adi)
+  ) |>
+  distinct()
+
+istanbuldepremverisi <- istanbuldepremverisi |>
+  mutate(
+    across(where(is.character), clean_text),
+    time = as.POSIXct(
+      Time,
+      format = "%Y-%m-%dT%H:%M:%OSZ",
+      tz = "UTC"
+    ),
+    Magnitude = as.numeric(Magnitude),
+    `Depth/km` = as.numeric(`Depth/km`),
+    Latitude = as.numeric(Latitude),
+    Longitude = as.numeric(Longitude)
+  ) |>
+  distinct()
+
+belediyenufus <- belediyenufus |>
+  mutate(
+    across(where(is.character), clean_text),
+    ilce_adi = clean_district(Belediyeler)
+  ) |>
+  distinct()
+
+kentseldonusum <- kentseldonusum |>
+  mutate(
+    across(where(is.character), clean_text),
+    ilce_adi = clean_district(Ilce)
+  ) |>
+  distinct()
+
+# Confirm that the three district-level sources use the same 39 districts.
+stopifnot(
+  setequal(unique(depremsenaryo$ilce_adi), unique(mahbinasayi$ilce_adi)),
+  setequal(unique(depremsenaryo$ilce_adi), unique(belediyenufus$ilce_adi)),
+  setequal(unique(depremsenaryo$ilce_adi), unique(kentseldonusum$ilce_adi))
+)
+
+data_quality <- tibble(
+  dataset = c(
+    "Earthquake scenario",
+    "Building stock",
+    "Observed earthquakes",
+    "District population",
+    "Urban transformation"
+  ),
+  rows = c(
+    nrow(depremsenaryo),
+    nrow(mahbinasayi),
+    nrow(istanbuldepremverisi),
+    nrow(belediyenufus),
+    nrow(kentseldonusum)
+  ),
+  columns = c(
+    ncol(depremsenaryo),
+    ncol(mahbinasayi),
+    ncol(istanbuldepremverisi),
+    ncol(belediyenufus),
+    ncol(kentseldonusum)
+  ),
+  missing_values = c(
+    sum(is.na(depremsenaryo)),
+    sum(is.na(mahbinasayi)),
+    sum(is.na(istanbuldepremverisi)),
+    sum(is.na(belediyenufus)),
+    sum(is.na(kentseldonusum))
+  ),
+  duplicate_rows = c(
+    sum(duplicated(depremsenaryo)),
+    sum(duplicated(mahbinasayi)),
+    sum(duplicated(istanbuldepremverisi)),
+    sum(duplicated(belediyenufus)),
+    sum(duplicated(kentseldonusum))
+  )
+)
+
+knitr::kable(
+  data_quality,
+  caption = "Data quality checks after preprocessing"
+)
+
+# Aggregate the neighbourhood-level sources to one row per district.
+depremsenaryo_ilce <- depremsenaryo |>
+  group_by(ilce_adi) |>
+  summarise(
+    across(
+      c(
+        cok_agir_hasarli_bina_sayisi,
+        agir_hasarli_bina_sayisi,
+        orta_hasarli_bina_sayisi,
+        hafif_hasarli_bina_sayisi,
+        can_kaybi_sayisi,
+        agir_yarali_sayisi,
+        hastanede_tedavi_sayisi,
+        hafif_yarali_sayisi,
+        dogalgaz_boru_hasari,
+        icme_suyu_boru_hasari,
+        atik_su_boru_hasari,
+        gecici_barinma
+      ),
+      ~ sum(.x, na.rm = TRUE)
+    ),
+    mahalle_sayisi = n_distinct(mahalle_koy_uavt),
+    .groups = "drop"
+  )
+
+mahbinasayi_ilce <- mahbinasayi |>
+  group_by(ilce_adi) |>
+  summarise(
+    across(
+      c(
+        `1980_oncesi`,
+        `1980-2000_arasi`,
+        `2000_sonrasi`,
+        `1-4 kat_arasi`,
+        `5-9 kat_arasi`,
+        `9-19 kat_arasi`
+      ),
+      ~ sum(.x, na.rm = TRUE)
+    ),
+    .groups = "drop"
+  )
+
+belediyenufus_ilce <- belediyenufus |>
+  transmute(
+    ilce_adi,
+    nufus_2019 = `2019`,
+    nufus_2020 = `2020`,
+    nufus_2021 = `2021`,
+    nufus_2022 = `2022`,
+    nufus_2023 = `2023`,
+    nufus_2024 = `2024`
+  )
+
+kentseldonusum_ilce <- kentseldonusum |>
+  transmute(
+    ilce_adi,
+    kentsel_donusum_evet = Kentsel_Donusum_Ihtiyac_Evet,
+    kentsel_donusum_hayir = Kentsel_Donusum_Ihtiyac_Hayir
+  )
+
+# The observed earthquake file covers the wider region and has no district key.
+# These measures are therefore retained as regional context, not district values.
+istanbul_merkez_enlem <- 41.0082
+istanbul_merkez_boylam <- 28.9784
+
+istanbuldepremverisi <- istanbuldepremverisi |>
+  mutate(
+    istanbul_merkeze_uzaklik_km = 6371 * 2 * asin(
+      sqrt(
+        sin((Latitude - istanbul_merkez_enlem) * pi / 360)^2 +
+          cos(istanbul_merkez_enlem * pi / 180) *
+            cos(Latitude * pi / 180) *
+            sin((Longitude - istanbul_merkez_boylam) * pi / 360)^2
+      )
+    )
+  )
+
+gozlenen_deprem_baglam <- istanbuldepremverisi |>
+  summarise(
+    bolgesel_deprem_sayisi = n(),
+    istanbula_100km_deprem_sayisi =
+      sum(istanbul_merkeze_uzaklik_km <= 100, na.rm = TRUE),
+    ortalama_magnitud = mean(Magnitude, na.rm = TRUE),
+    maksimum_magnitud = max(Magnitude, na.rm = TRUE),
+    medyan_derinlik_km = median(`Depth/km`, na.rm = TRUE),
+    ilk_deprem_tarihi = min(time, na.rm = TRUE),
+    son_deprem_tarihi = max(time, na.rm = TRUE)
+  )
+
+# Join the four district-level sources and append the regional context.
+ilce_birlesik <- depremsenaryo_ilce |>
+  left_join(mahbinasayi_ilce, by = "ilce_adi") |>
+  left_join(belediyenufus_ilce, by = "ilce_adi") |>
+  left_join(kentseldonusum_ilce, by = "ilce_adi") |>
+  cross_join(gozlenen_deprem_baglam) |>
+  mutate(
+    toplam_bina =
+      `1980_oncesi` + `1980-2000_arasi` + `2000_sonrasi`,
+    eski_bina_orani = if_else(
+      toplam_bina > 0,
+      `1980_oncesi` / toplam_bina,
+      NA_real_
+    ),
+    kentsel_donusum_evet_orani = if_else(
+      kentsel_donusum_evet + kentsel_donusum_hayir > 0,
+      kentsel_donusum_evet /
+        (kentsel_donusum_evet + kentsel_donusum_hayir),
+      NA_real_
+    ),
+    nufus_degisim_orani_2019_2024 =
+      (nufus_2024 - nufus_2019) / nufus_2019,
+    can_kaybi_100bin =
+      can_kaybi_sayisi / nufus_2024 * 100000,
+    gecici_barinma_100bin =
+      gecici_barinma / nufus_2024 * 100000,
+    agir_ve_cok_agir_hasar_orani = if_else(
+      toplam_bina > 0,
+      (agir_hasarli_bina_sayisi +
+        cok_agir_hasarli_bina_sayisi) / toplam_bina,
+      NA_real_
+    )
+  )
+
+# Every Istanbul district must appear exactly once after the joins.
+stopifnot(
+  nrow(ilce_birlesik) == 39,
+  n_distinct(ilce_birlesik$ilce_adi) == 39,
+  sum(is.na(ilce_birlesik)) == 0
+)
+
+# Save the cleaned source tables and the district-level analytical table.
+save(
+  depremsenaryo,
+  mahbinasayi,
+  istanbuldepremverisi,
+  belediyenufus,
+  kentseldonusum,
+  depremsenaryo_ilce,
+  mahbinasayi_ilce,
+  belediyenufus_ilce,
+  kentseldonusum_ilce,
+  gozlenen_deprem_baglam,
+  ilce_birlesik,
+  file = "istanbul_deprem_verileri.RData"
+)
 ```
 
 
@@ -96,27 +330,356 @@ Istanbul is widely regarded as a city facing a very high earthquake risk, with t
 
 ## 2.4 Preprocessing
 
-There are 4 datasets which were downloaded from the sources mentioned in the section 2.1 Data Source. The .RData file can be downloaded to review.
+Five datasets were downloaded from the sources listed in Section 2.1 and imported from their original Excel files using `readxl`. All character columns were converted to UTF-8, repeated whitespace was removed, and empty strings were represented as missing values. District names were standardized in Turkish uppercase and the word "Belediyesi" was removed from the population dataset to create a common `ilce_adi` key. The historical district name "Eyüp" was also standardized as "Eyüpsultan" to match the more recent datasets.
+
+The earthquake timestamps were converted to UTC date-time values, while magnitude, depth, latitude, and longitude were explicitly checked as numeric variables. Fully duplicated rows were removed, and the district lists were validated across the earthquake scenario, building stock, population, and urban transformation datasets. The cleaned datasets were then stored in `istanbul_deprem_verileri.RData`.
+
+## 2.5 District-Level Data Integration
+
+The earthquake scenario and building stock datasets originally contain one row per neighbourhood. Their count variables were summed to produce one row for each district. The population and urban transformation datasets already contain one row per district, so only their variable names and district keys were standardized.
+
+The observed earthquake dataset cannot be assigned directly to Istanbul districts because its coordinates cover a much wider region, including Western Türkiye, the Aegean Sea, the Black Sea, Bulgaria, and surrounding areas. Assigning these events to Istanbul districts would therefore be misleading. Instead, this fifth dataset contributes regional context variables, including the total number of observed earthquakes, the number recorded within 100 km of central Istanbul, mean and maximum magnitude, median depth, and the observation period. These contextual values are identical for all district rows and must not be interpreted as district-specific earthquake counts.
+
+The resulting `ilce_birlesik` table contains exactly one row for each of Istanbul's 39 districts. It combines projected earthquake consequences, building characteristics, annual population, urban transformation opinions, and regional observed-earthquake context. It also includes derived variables for the proportion of pre-1980 buildings, the proportion reporting a need for urban transformation, and population change between 2019 and 2024.
+
+```{r}
+integration_summary <- tibble(
+  item = c(
+    "Districts",
+    "Variables",
+    "Missing values",
+    "Duplicate district rows"
+  ),
+  value = c(
+    nrow(ilce_birlesik),
+    ncol(ilce_birlesik),
+    sum(is.na(ilce_birlesik)),
+    sum(duplicated(ilce_birlesik$ilce_adi))
+  )
+)
+
+knitr::kable(
+  integration_summary,
+  caption = "Validation of the district-level integrated dataset"
+)
+
+ilce_birlesik |>
+  select(
+    ilce_adi,
+    can_kaybi_sayisi,
+    `1980_oncesi`,
+    nufus_2024,
+    kentsel_donusum_evet_orani,
+    istanbula_100km_deprem_sayisi
+  ) |>
+  arrange(desc(can_kaybi_sayisi)) |>
+  slice_head(n = 10) |>
+  mutate(
+    kentsel_donusum_evet_orani =
+      percent(kentsel_donusum_evet_orani, accuracy = 0.1)
+  ) |>
+  knitr::kable(
+    caption = "Selected variables for the ten districts with the highest projected loss of life"
+  )
+```
 
 # 3. Analysis
 
 ## 3.1 Exploratory Data Analysis
 
+The exploratory analysis first examines the structure and quality of the integrated district-level dataset. Raw counts are considered together with population- and building-adjusted rates because districts differ considerably in population and building stock. The observed-earthquake variables are excluded from district comparisons because they describe the same regional context for every district.
+
+### 3.1.1 Variable Dictionary
+
+The following table documents the principal variables used in the district-level analysis. Count variables from the scenario and building datasets were aggregated by summing neighbourhood values within each district.
+
+```{r}
+variable_dictionary <- tribble(
+  ~variable, ~source, ~meaning, ~unit,
+  "ilce_adi", "All district sources",
+  "Standardized district name", "Category",
+  "can_kaybi_sayisi", "Earthquake scenario",
+  "Projected loss of life", "People",
+  "cok_agir_hasarli_bina_sayisi", "Earthquake scenario",
+  "Projected number of severely damaged buildings", "Buildings",
+  "agir_hasarli_bina_sayisi", "Earthquake scenario",
+  "Projected number of heavily damaged buildings", "Buildings",
+  "gecici_barinma", "Earthquake scenario",
+  "Projected temporary shelter requirement", "People",
+  "1980_oncesi", "Building stock",
+  "Buildings constructed before 1980", "Buildings",
+  "toplam_bina", "Building stock",
+  "Total buildings across the three construction periods", "Buildings",
+  "eski_bina_orani", "Derived",
+  "Share of buildings constructed before 1980", "Proportion",
+  "nufus_2024", "Population",
+  "District population in 2024", "People",
+  "nufus_degisim_orani_2019_2024", "Derived",
+  "Population change between 2019 and 2024", "Proportion",
+  "kentsel_donusum_evet_orani", "Urban transformation",
+  "Share reporting a need for urban transformation", "Proportion",
+  "can_kaybi_100bin", "Derived",
+  "Projected loss of life per 100,000 residents", "People per 100,000",
+  "gecici_barinma_100bin", "Derived",
+  "Temporary shelter requirement per 100,000 residents", "People per 100,000",
+  "agir_ve_cok_agir_hasar_orani", "Derived",
+  "Heavily and severely damaged buildings relative to total buildings",
+  "Proportion"
+)
+
+knitr::kable(
+  variable_dictionary,
+  caption = "Dictionary of the principal district-level variables"
+)
+```
+
+### 3.1.2 Data Quality Profile
+
+The integrated table was checked for missing values, duplicated district records, impossible negative values, and variation across districts. Variables with only one unique value are regional context variables copied from the observed-earthquake dataset; they are retained for documentation but are not used in correlations or district rankings.
+
+```{r}
+eda_variables <- c(
+  "can_kaybi_sayisi",
+  "cok_agir_hasarli_bina_sayisi",
+  "agir_hasarli_bina_sayisi",
+  "gecici_barinma",
+  "1980_oncesi",
+  "toplam_bina",
+  "eski_bina_orani",
+  "nufus_2024",
+  "nufus_degisim_orani_2019_2024",
+  "kentsel_donusum_evet_orani",
+  "can_kaybi_100bin",
+  "gecici_barinma_100bin",
+  "agir_ve_cok_agir_hasar_orani"
+)
+
+quality_profile <- ilce_birlesik |>
+  select(all_of(eda_variables)) |>
+  summarise(
+    across(
+      everything(),
+      list(
+        missing = ~ sum(is.na(.x)),
+        unique = ~ n_distinct(.x),
+        negative = ~ sum(.x < 0, na.rm = TRUE)
+      ),
+      .names = "{.col}__{.fn}"
+    )
+  ) |>
+  pivot_longer(
+    everything(),
+    names_to = c("variable", ".value"),
+    names_sep = "__"
+  )
+
+knitr::kable(
+  quality_profile,
+  caption = "Quality profile of variables used in exploratory analysis"
+)
+```
+
+All 39 districts are represented once in the integrated table. No missing values, duplicate district rows, or impossible negative counts were found in the selected variables. The negative values appearing in the population-change variable are valid and indicate population decline rather than a data-quality problem.
+
+### 3.1.3 Descriptive Statistics
+
+```{r}
+descriptive_statistics <- ilce_birlesik |>
+  select(all_of(eda_variables)) |>
+  summarise(
+    across(
+      everything(),
+      list(
+        minimum = ~ min(.x, na.rm = TRUE),
+        q1 = ~ quantile(.x, 0.25, na.rm = TRUE),
+        median = ~ median(.x, na.rm = TRUE),
+        mean = ~ mean(.x, na.rm = TRUE),
+        q3 = ~ quantile(.x, 0.75, na.rm = TRUE),
+        maximum = ~ max(.x, na.rm = TRUE),
+        sd = ~ sd(.x, na.rm = TRUE)
+      ),
+      .names = "{.col}__{.fn}"
+    )
+  ) |>
+  pivot_longer(
+    everything(),
+    names_to = c("variable", ".value"),
+    names_sep = "__"
+  ) |>
+  mutate(
+    across(where(is.numeric), ~ round(.x, 3))
+  )
+
+knitr::kable(
+  descriptive_statistics,
+  caption = "Descriptive statistics across Istanbul's 39 districts"
+)
+```
+
+The substantial difference between the mean and median for projected loss of life indicates a right-skewed distribution: a small number of districts account for particularly high projected consequences. Building age also varies greatly. The median district has approximately 18.8% pre-1980 buildings, whereas the maximum district-level share exceeds 73%.
+
+### 3.1.4 Distributions
+
+```{r}
+distribution_data <- ilce_birlesik |>
+  select(
+    `Projected loss of life` = can_kaybi_sayisi,
+    `Loss of life per 100,000` = can_kaybi_100bin,
+    `Pre-1980 building share` = eski_bina_orani,
+    `2024 population` = nufus_2024,
+    `Urban transformation need` = kentsel_donusum_evet_orani,
+    `Heavy damage share` = agir_ve_cok_agir_hasar_orani
+  ) |>
+  pivot_longer(
+    everything(),
+    names_to = "indicator",
+    values_to = "value"
+  )
+
+ggplot(distribution_data, aes(x = value)) +
+  geom_histogram(bins = 10, fill = "steelblue", color = "white") +
+  facet_wrap(~ indicator, scales = "free", ncol = 2) +
+  labs(
+    title = "Distribution of Selected District Indicators",
+    x = NULL,
+    y = "Number of districts"
+  ) +
+  theme_minimal()
+```
+
+The histograms show that projected losses and damage are concentrated in the upper tail rather than distributed evenly across Istanbul. Population-adjusted loss therefore provides an important complement to raw loss counts, particularly for smaller but structurally vulnerable districts.
+
+### 3.1.5 Outlier Assessment
+
+Potential outliers were identified using the conventional 1.5 interquartile-range rule. These observations are not removed because they represent real districts and may be substantively important for disaster planning.
+
+```{r}
+find_iqr_outliers <- function(data, variable) {
+  values <- data[[variable]]
+  q1 <- quantile(values, 0.25, na.rm = TRUE)
+  q3 <- quantile(values, 0.75, na.rm = TRUE)
+  iqr_value <- q3 - q1
+
+  data |>
+    mutate(outlier_value = .data[[variable]]) |>
+    filter(
+      outlier_value < q1 - 1.5 * iqr_value |
+        outlier_value > q3 + 1.5 * iqr_value
+    ) |>
+    transmute(
+      variable = variable,
+      ilce_adi,
+      value = outlier_value
+    )
+}
+
+outlier_variables <- c(
+  "can_kaybi_sayisi",
+  "cok_agir_hasarli_bina_sayisi",
+  "agir_hasarli_bina_sayisi",
+  "gecici_barinma",
+  "1980_oncesi",
+  "nufus_2024",
+  "can_kaybi_100bin",
+  "agir_ve_cok_agir_hasar_orani"
+)
+
+outlier_table <- bind_rows(
+  lapply(
+    outlier_variables,
+    \(variable) find_iqr_outliers(ilce_birlesik, variable)
+  )
+) |>
+  arrange(variable, desc(value))
+
+knitr::kable(
+  outlier_table,
+  digits = 2,
+  caption = "Potential district outliers based on the 1.5 IQR rule"
+)
+```
+
+Fatih repeatedly appears as an outlier in building-age and damage indicators, while Bahçelievler and Küçükçekmece stand out for projected loss of life. Esenyurt is an outlier in population. These observations should be investigated rather than deleted because each reflects a distinct dimension of exposure or vulnerability.
+
+### 3.1.6 Relationships Between Indicators
+
+```{r}
+correlation_variables <- ilce_birlesik |>
+  select(
+    `Loss of life` = can_kaybi_sayisi,
+    `Loss per 100,000` = can_kaybi_100bin,
+    `Heavy damage share` = agir_ve_cok_agir_hasar_orani,
+    `Pre-1980 share` = eski_bina_orani,
+    `Population 2024` = nufus_2024,
+    `Population change` = nufus_degisim_orani_2019_2024,
+    `Transformation need` = kentsel_donusum_evet_orani
+  )
+
+correlation_table <- cor(
+  correlation_variables,
+  use = "pairwise.complete.obs",
+  method = "spearman"
+) |>
+  as.data.frame() |>
+  rownames_to_column("variable") |>
+  mutate(across(where(is.numeric), ~ round(.x, 2)))
+
+knitr::kable(
+  correlation_table,
+  caption = "Spearman correlations between selected district indicators"
+)
+
+ggplot(
+  ilce_birlesik,
+  aes(
+    x = eski_bina_orani,
+    y = agir_ve_cok_agir_hasar_orani,
+    size = nufus_2024,
+    color = can_kaybi_100bin
+  )
+) +
+  geom_point(alpha = 0.8) +
+  geom_smooth(
+    aes(
+      x = eski_bina_orani,
+      y = agir_ve_cok_agir_hasar_orani
+    ),
+    method = "lm",
+    se = FALSE,
+    color = "grey30",
+    linewidth = 0.6,
+    inherit.aes = FALSE
+  ) +
+  scale_x_continuous(labels = percent) +
+  scale_y_continuous(labels = percent) +
+  scale_color_viridis_c(name = "Loss per\n100,000") +
+  scale_size_continuous(
+    labels = label_number(scale_cut = cut_short_scale()),
+    name = "2024 population"
+  ) +
+  labs(
+    title = "Building Age and Projected Heavy Damage",
+    x = "Share of buildings constructed before 1980",
+    y = "Projected heavy and severe damage share"
+  ) +
+  theme_minimal()
+```
+
+Spearman correlation is used because several indicators are strongly skewed and the sample consists of only 39 districts. The strongest relationship is between projected heavy-damage share and loss of life per 100,000 residents ($\rho = 0.95$). The pre-1980 building share has a moderate positive relationship with perceived urban transformation need ($\rho = 0.55$), while population change and transformation need have a strong negative relationship ($\rho = -0.76$). These correlations describe association, not causation. The scatter plot adds population and projected loss per 100,000 residents, allowing structural vulnerability, exposure, and consequences to be considered together.
+
+### 3.1.7 Source-Specific Visualizations
+
 “depremsenaryo” analysis:
 
-The analysis began with the “depremsenaryo” dataset.The top three districts in terms of “Loss of Life” are Bahçelievler, Bakırköy, and Küçükçekmece.
+The analysis began with the “depremsenaryo” dataset. The top three districts in projected loss of life are Bahçelievler, Küçükçekmece, and Fatih.
 
-Bahçelievler, Bakırköy, Fatih and Küçükçekmece on the “Ağır Yaralı” plot,
+Fatih, Küçükçekmece, and Bahçelievler also have the highest projected numbers of severely injured residents.
 
-Bahçelievler, Bakırköy and Küçükçekmece on the “Hastanede Tedavi” and “Hafif Yaralı” plot were attention-grabbing.
+Bahçelievler, Küçükçekmece, and Fatih lead the hospital-treatment and minor-injury projections, while Küçükçekmece, Esenyurt, and Bahçelievler have the highest temporary shelter requirements.
 
 ```{r}
 
-#install.packages("ggplot2")
-
-depremsenaryo <- read_excel("depremsenaryo.xlsx")
-
-top_data <- depremsenaryo %>%
+top_data <- depremsenaryo_ilce %>%
   arrange(desc(can_kaybi_sayisi)) %>%
   slice(1:10)
 
@@ -127,7 +690,7 @@ ggplot(top_data, aes(x = reorder(ilce_adi, can_kaybi_sayisi),
   geom_text(aes(label = can_kaybi_sayisi), hjust = -0.1) +
   theme_minimal()
 
-s2<-depremsenaryo%>%ggplot(aes(x=ilce_adi, y=agir_yarali_sayisi))+
+s2<-depremsenaryo_ilce%>%ggplot(aes(x=ilce_adi, y=agir_yarali_sayisi))+
   geom_point()+
   theme(axis.text.x=element_text(angle=90, hjust=1))+
   xlab("İlçe Adı")+
@@ -135,7 +698,7 @@ s2<-depremsenaryo%>%ggplot(aes(x=ilce_adi, y=agir_yarali_sayisi))+
   labs(title="İlçe Bazında Ağır Yaralı Sayısı Dağılımı")
 s2
 
-s3<-depremsenaryo%>%ggplot(aes(x=ilce_adi, y=hastanede_tedavi_sayisi))+
+s3<-depremsenaryo_ilce%>%ggplot(aes(x=ilce_adi, y=hastanede_tedavi_sayisi))+
   geom_point()+
   theme(axis.text.x=element_text(angle=90, hjust=1))+
   xlab("İlçe Adı")+
@@ -143,7 +706,7 @@ s3<-depremsenaryo%>%ggplot(aes(x=ilce_adi, y=hastanede_tedavi_sayisi))+
   labs(title="İlçe Bazında Hastanede Tedavi Sayısı Dağılımı")
 s3
 
-s4<-depremsenaryo%>%ggplot(aes(x=ilce_adi, y=hafif_yarali_sayisi))+
+s4<-depremsenaryo_ilce%>%ggplot(aes(x=ilce_adi, y=hafif_yarali_sayisi))+
   geom_point()+
   theme(axis.text.x=element_text(angle=90, hjust=1))+
   xlab("İlçe Adı")+
@@ -151,7 +714,7 @@ s4<-depremsenaryo%>%ggplot(aes(x=ilce_adi, y=hafif_yarali_sayisi))+
   labs(title="İlçe Bazında Hafif Yaralı Sayısı Dağılımı")
 s4
 
-p1<-depremsenaryo%>%ggplot(aes(x=ilce_adi, y=gecici_barinma))+
+p1<-depremsenaryo_ilce%>%ggplot(aes(x=ilce_adi, y=gecici_barinma))+
   geom_point()+
   theme(axis.text.x=element_text(angle=90, hjust=1))+
   xlab("İlçe Adı")+
@@ -167,7 +730,7 @@ Although the data is based on neighborhoods, the analyses have been done based o
 
 ```{r}
 
-p2 <- ggplot(mahbinasayi, aes(x = ilce_adi)) +
+p2 <- ggplot(mahbinasayi_ilce, aes(x = ilce_adi)) +
   geom_col(aes(y = `1980_oncesi`, fill = "1980 Oncesi"),
            position = "dodge") +
   geom_col(aes(y = `1980-2000_arasi`, fill = "1980-2000 Arasi"),
@@ -187,7 +750,7 @@ p2
 
 ```{r}
 
-p3 <- ggplot(mahbinasayi, aes(x = ilce_adi)) +
+p3 <- ggplot(mahbinasayi_ilce, aes(x = ilce_adi)) +
   geom_col(aes(y = `1-4 kat_arasi`, fill = "1-4 kat arasi"),
            position = "dodge") +
   geom_col(aes(y = `5-9 kat_arasi`, fill = "5-9 kat arasi"),
@@ -277,16 +840,6 @@ Analyzing this dataset is essential for understanding earthquake activity and as
 
 ```{r}
 
-istanbuldepremverisi <- read_excel("istanbuldepremverisi.xlsx", sheet = "istanbuldepremverisi")
-
-istanbuldepremverisi$time <- as.POSIXct(
-  istanbuldepremverisi$Time,
-  format = "%Y-%m-%dT%H:%M:%OSZ",
-  tz = "UTC"
-)
-
-istanbuldepremverisi$Magnitude <- as.numeric(istanbuldepremverisi$Magnitude)
-
 s5 <- ggplot(istanbuldepremverisi, aes(x = time, y = Magnitude)) +
   geom_line(linewidth = 0.3, alpha = 0.7) +
   geom_point(size = 0.8, alpha = 0.6) +
@@ -319,7 +872,7 @@ s6
 Display of Earthquakes Occurring Around Istanbul on the Map
 
 ```{r}
-library(leaflet)
+suppressWarnings(library(leaflet))
 
 deprem_konum <- data.frame(
   name = istanbuldepremverisi$`#EventID`,
@@ -339,9 +892,874 @@ istanbul_map <- leaflet(data = deprem_konum) %>%
 istanbul_map
 ```
 
-## 3.2 Results
+## 3.2 Normalized District Risk Score
 
-As a result of these analyses, the districts that require the most urgent precautions, where the highest potential loss of life and property may occur, and where response efforts should be planned most carefully were identified as Fatih, Bağcılar, Pendik, Küçükçekmece, and Esenyurt. If the weights used to calculate the overall risk score are determined by experts, the results can be expected to be much more reliable and accurate.
+### 3.2.1 Method
+
+A composite score was developed to compare the relative earthquake risk of Istanbul's districts. The score does not estimate the probability that an earthquake will occur. Instead, it combines the projected consequences, structural vulnerability, infrastructure and shelter pressure, and the scale of exposed population and buildings under the scenario data.
+
+Each indicator was normalized to the 0–100 range using min–max normalization:
+
+$$
+z_{ij} = 100 \times
+\frac{x_{ij} - \min(x_j)}
+{\max(x_j) - \min(x_j)}
+$$
+
+where $x_{ij}$ is the value of district $i$ for indicator $j$. A value of 0 represents the lowest observed value among the 39 districts and 100 represents the highest. Indicators within each dimension were averaged, and the four dimension scores were assigned equal weights. Equal weights were chosen because no expert-derived weighting scheme was available.
+
+```{r}
+risk_method <- tribble(
+  ~dimension, ~weight, ~indicators,
+  "Human consequences", "25%",
+  "Loss of life, severe injuries, and hospital treatment per 100,000 residents",
+  "Structural vulnerability", "25%",
+  "Heavy/severe damage share and pre-1980 building share",
+  "Infrastructure and shelter", "25%",
+  "Temporary shelter and natural gas, drinking-water, and wastewater damage per 100,000 residents",
+  "Exposure", "25%",
+  "2024 population and total building stock"
+)
+
+knitr::kable(
+  risk_method,
+  caption = "Dimensions and weights of the normalized district risk score"
+)
+```
+
+### 3.2.2 Calculation
+
+```{r}
+min_max_100 <- function(x) {
+  limits <- range(x, na.rm = TRUE)
+
+  if (limits[1] == limits[2]) {
+    return(rep(0, length(x)))
+  }
+
+  100 * (x - limits[1]) / (limits[2] - limits[1])
+}
+
+ilce_risk <- ilce_birlesik |>
+  mutate(
+    agir_yarali_100bin =
+      agir_yarali_sayisi / nufus_2024 * 100000,
+    hastane_tedavi_100bin =
+      hastanede_tedavi_sayisi / nufus_2024 * 100000,
+    dogalgaz_hasari_100bin =
+      dogalgaz_boru_hasari / nufus_2024 * 100000,
+    icme_suyu_hasari_100bin =
+      icme_suyu_boru_hasari / nufus_2024 * 100000,
+    atik_su_hasari_100bin =
+      atik_su_boru_hasari / nufus_2024 * 100000,
+    norm_can_kaybi = min_max_100(can_kaybi_100bin),
+    norm_agir_yarali = min_max_100(agir_yarali_100bin),
+    norm_hastane_tedavi = min_max_100(hastane_tedavi_100bin),
+    norm_agir_hasar = min_max_100(agir_ve_cok_agir_hasar_orani),
+    norm_eski_bina = min_max_100(eski_bina_orani),
+    norm_gecici_barinma = min_max_100(gecici_barinma_100bin),
+    norm_dogalgaz = min_max_100(dogalgaz_hasari_100bin),
+    norm_icme_suyu = min_max_100(icme_suyu_hasari_100bin),
+    norm_atik_su = min_max_100(atik_su_hasari_100bin),
+    norm_nufus = min_max_100(nufus_2024),
+    norm_toplam_bina = min_max_100(toplam_bina),
+    insani_sonuc_puani = rowMeans(
+      pick(
+        norm_can_kaybi,
+        norm_agir_yarali,
+        norm_hastane_tedavi
+      )
+    ),
+    yapisal_kirilganlik_puani = rowMeans(
+      pick(norm_agir_hasar, norm_eski_bina)
+    ),
+    altyapi_barinma_puani = rowMeans(
+      pick(
+        norm_gecici_barinma,
+        norm_dogalgaz,
+        norm_icme_suyu,
+        norm_atik_su
+      )
+    ),
+    maruziyet_puani = rowMeans(
+      pick(norm_nufus, norm_toplam_bina)
+    ),
+    risk_puani = rowMeans(
+      pick(
+        insani_sonuc_puani,
+        yapisal_kirilganlik_puani,
+        altyapi_barinma_puani,
+        maruziyet_puani
+      )
+    ),
+    risk_sirasi = min_rank(desc(risk_puani)),
+    risk_grubu_no = ntile(desc(risk_puani), 5),
+    risk_grubu = factor(
+      recode(
+        risk_grubu_no,
+        `1` = "Very high",
+        `2` = "High",
+        `3` = "Moderate",
+        `4` = "Low",
+        `5` = "Very low"
+      ),
+      levels = c("Very high", "High", "Moderate", "Low", "Very low")
+    )
+  ) |>
+  arrange(risk_sirasi)
+
+stopifnot(
+  nrow(ilce_risk) == 39,
+  all(between(ilce_risk$risk_puani, 0, 100)),
+  n_distinct(ilce_risk$risk_sirasi) == 39
+)
+
+ilce_risk |>
+  select(
+    risk_sirasi,
+    ilce_adi,
+    risk_puani,
+    risk_grubu,
+    insani_sonuc_puani,
+    yapisal_kirilganlik_puani,
+    altyapi_barinma_puani,
+    maruziyet_puani
+  ) |>
+  slice_head(n = 15) |>
+  mutate(
+    across(
+      ends_with("_puani"),
+      ~ round(.x, 1)
+    )
+  ) |>
+  knitr::kable(
+    caption = "The 15 districts with the highest normalized risk scores"
+  )
+```
+
+Risk groups are relative quintiles rather than absolute safety thresholds. A district classified as "very low" therefore has lower modeled risk than the other Istanbul districts, but it should not be interpreted as having no earthquake risk.
+
+### 3.2.3 Ranking and Risk Components
+
+```{r}
+top_risk_districts <- ilce_risk |>
+  slice_head(n = 15)
+
+ggplot(
+  top_risk_districts,
+  aes(
+    x = risk_puani,
+    y = fct_reorder(ilce_adi, risk_puani),
+    fill = risk_grubu
+  )
+) +
+  geom_col() +
+  geom_text(
+    aes(label = round(risk_puani, 1)),
+    hjust = -0.15,
+    size = 3.2
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Very high" = "#9b2226",
+      "High" = "#ee9b00",
+      "Moderate" = "#e9d8a6",
+      "Low" = "#94d2bd",
+      "Very low" = "#0a9396"
+    )
+  ) +
+  scale_x_continuous(
+    limits = c(0, max(top_risk_districts$risk_puani) * 1.12)
+  ) +
+  labs(
+    title = "Districts with the Highest Composite Risk Scores",
+    x = "Normalized risk score (0-100)",
+    y = NULL,
+    fill = "Relative risk group"
+  ) +
+  theme_minimal()
+
+risk_components <- ilce_risk |>
+  slice_head(n = 15) |>
+  select(
+    ilce_adi,
+    `Human consequences` = insani_sonuc_puani,
+    `Structural vulnerability` = yapisal_kirilganlik_puani,
+    `Infrastructure and shelter` = altyapi_barinma_puani,
+    Exposure = maruziyet_puani
+  ) |>
+  pivot_longer(
+    -ilce_adi,
+    names_to = "dimension",
+    values_to = "score"
+  )
+
+ggplot(
+  risk_components,
+  aes(
+    x = dimension,
+    y = fct_rev(factor(
+      ilce_adi,
+      levels = top_risk_districts$ilce_adi
+    )),
+    fill = score
+  )
+) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = round(score)), size = 3) +
+  scale_fill_viridis_c(limits = c(0, 100)) +
+  labs(
+    title = "Risk Components of the 15 Highest-Ranked Districts",
+    x = NULL,
+    y = NULL,
+    fill = "Score"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+```
+
+### 3.2.4 Weight Sensitivity
+
+An alternative score was calculated by assigning 35% to human consequences, 30% to structural vulnerability, 20% to infrastructure and shelter, and 15% to exposure. This alternative reflects a stronger priority on preventing loss of life and structural damage.
+
+```{r}
+ilce_risk <- ilce_risk |>
+  mutate(
+    alternatif_risk_puani =
+      0.35 * insani_sonuc_puani +
+      0.30 * yapisal_kirilganlik_puani +
+      0.20 * altyapi_barinma_puani +
+      0.15 * maruziyet_puani,
+    alternatif_sira = min_rank(desc(alternatif_risk_puani)),
+    sira_farki = alternatif_sira - risk_sirasi
+  )
+
+rank_correlation <- cor(
+  ilce_risk$risk_puani,
+  ilce_risk$alternatif_risk_puani,
+  method = "spearman"
+)
+
+sensitivity_summary <- tibble(
+  measure = c(
+    "Spearman rank correlation",
+    "Districts remaining in the top 10",
+    "Largest absolute rank change"
+  ),
+  value = c(
+    round(rank_correlation, 3),
+    length(intersect(
+      ilce_risk$ilce_adi[ilce_risk$risk_sirasi <= 10],
+      ilce_risk$ilce_adi[ilce_risk$alternatif_sira <= 10]
+    )),
+    max(abs(ilce_risk$sira_farki))
+  )
+)
+
+knitr::kable(
+  sensitivity_summary,
+  caption = "Sensitivity of the district ranking to alternative weights"
+)
+
+ggplot(
+  ilce_risk,
+  aes(
+    x = risk_puani,
+    y = alternatif_risk_puani,
+    color = risk_grubu
+  )
+) +
+  geom_abline(
+    slope = 1,
+    intercept = 0,
+    linetype = "dashed",
+    color = "grey50"
+  ) +
+  geom_point(size = 2.5, alpha = 0.8) +
+  labs(
+    title = "Sensitivity of Risk Scores to Alternative Weights",
+    x = "Equal-weight score",
+    y = "Alternative-weight score",
+    color = "Relative risk group"
+  ) +
+  theme_minimal()
+
+# Update the reproducible data file with the completed risk table.
+save(
+  depremsenaryo,
+  mahbinasayi,
+  istanbuldepremverisi,
+  belediyenufus,
+  kentseldonusum,
+  depremsenaryo_ilce,
+  mahbinasayi_ilce,
+  belediyenufus_ilce,
+  kentseldonusum_ilce,
+  gozlenen_deprem_baglam,
+  ilce_birlesik,
+  ilce_risk,
+  file = "istanbul_deprem_verileri.RData"
+)
+```
+
+The sensitivity analysis indicates whether the ranking is stable when greater importance is assigned to human and structural consequences. Nevertheless, the score remains a decision-support index based on the available scenario data, not an official earthquake-risk classification. Expert consultation would be required before using the weights for operational resource allocation.
+
+## 3.3 Urban Transformation Opinions and Risk
+
+The urban transformation variable represents the proportion of respondents in each district who reported that their household needed urban transformation. It is compared below with model-based risk indicators derived from the earthquake scenario, building stock, infrastructure, and population datasets. These indicators are objective in the sense that they are calculated from administrative and scenario data, but they should not be interpreted as observed post-earthquake damage.
+
+### 3.3.1 Association with Risk Indicators
+
+```{r}
+transformation_correlations <- ilce_risk |>
+  summarise(
+    `Overall risk score` = cor(
+      kentsel_donusum_evet_orani,
+      risk_puani,
+      method = "spearman"
+    ),
+    `Human consequences` = cor(
+      kentsel_donusum_evet_orani,
+      insani_sonuc_puani,
+      method = "spearman"
+    ),
+    `Structural vulnerability` = cor(
+      kentsel_donusum_evet_orani,
+      yapisal_kirilganlik_puani,
+      method = "spearman"
+    ),
+    `Infrastructure and shelter` = cor(
+      kentsel_donusum_evet_orani,
+      altyapi_barinma_puani,
+      method = "spearman"
+    ),
+    Exposure = cor(
+      kentsel_donusum_evet_orani,
+      maruziyet_puani,
+      method = "spearman"
+    ),
+    `Pre-1980 building share` = cor(
+      kentsel_donusum_evet_orani,
+      eski_bina_orani,
+      method = "spearman"
+    ),
+    `Heavy damage share` = cor(
+      kentsel_donusum_evet_orani,
+      agir_ve_cok_agir_hasar_orani,
+      method = "spearman"
+    )
+  ) |>
+  pivot_longer(
+    everything(),
+    names_to = "risk_indicator",
+    values_to = "spearman_rho"
+  ) |>
+  arrange(desc(spearman_rho)) |>
+  mutate(spearman_rho = round(spearman_rho, 3))
+
+risk_transformation_test <- cor.test(
+  ilce_risk$risk_puani,
+  ilce_risk$kentsel_donusum_evet_orani,
+  method = "spearman",
+  exact = FALSE
+)
+
+knitr::kable(
+  transformation_correlations,
+  caption = "Relationship between urban transformation opinions and risk indicators"
+)
+
+test_summary <- tibble(
+  measure = c(
+    "Spearman correlation",
+    "p-value",
+    "Districts"
+  ),
+  value = c(
+    round(unname(risk_transformation_test$estimate), 3),
+    round(risk_transformation_test$p.value, 3),
+    nrow(ilce_risk)
+  )
+)
+
+knitr::kable(
+  test_summary,
+  caption = "Spearman test for overall risk and perceived transformation need"
+)
+```
+
+Perceived urban transformation need has a positive but modest relationship with the overall risk score ($\rho = 0.339$, $p = 0.035$). The relationship is stronger for the pre-1980 building share ($\rho = 0.554$) and structural vulnerability component ($\rho = 0.524$). In contrast, perceived need is almost unrelated to exposure and infrastructure pressure. Residents' opinions therefore appear to align more closely with visible building age than with the complete multidimensional risk profile.
+
+### 3.3.2 Risk-Demand Policy Groups
+
+Districts were divided using the median overall risk score and median urban transformation-need proportion. This creates four relative policy groups. The "high risk / low demand" group is particularly important because the modeled risk is above the Istanbul median while perceived transformation need is below the median.
+
+```{r}
+median_risk <- median(ilce_risk$risk_puani)
+median_transformation <- median(
+  ilce_risk$kentsel_donusum_evet_orani
+)
+
+ilce_risk <- ilce_risk |>
+  mutate(
+    politika_grubu = case_when(
+      risk_puani >= median_risk &
+        kentsel_donusum_evet_orani >= median_transformation ~
+        "High risk / high demand",
+      risk_puani >= median_risk &
+        kentsel_donusum_evet_orani < median_transformation ~
+        "High risk / low demand",
+      risk_puani < median_risk &
+        kentsel_donusum_evet_orani >= median_transformation ~
+        "Low risk / high demand",
+      TRUE ~ "Low risk / low demand"
+    ),
+    politika_grubu = factor(
+      politika_grubu,
+      levels = c(
+        "High risk / low demand",
+        "High risk / high demand",
+        "Low risk / high demand",
+        "Low risk / low demand"
+      )
+    ),
+    risk_yuzdelik = percent_rank(risk_puani),
+    donusum_talebi_yuzdelik =
+      percent_rank(kentsel_donusum_evet_orani),
+    risk_talep_farki =
+      risk_yuzdelik - donusum_talebi_yuzdelik
+  )
+
+policy_group_summary <- ilce_risk |>
+  count(politika_grubu, name = "districts")
+
+knitr::kable(
+  policy_group_summary,
+  caption = "Distribution of districts across risk-demand policy groups"
+)
+
+label_districts <- ilce_risk |>
+  filter(
+    politika_grubu == "High risk / low demand" |
+      risk_sirasi <= 5
+  )
+
+ggplot(
+  ilce_risk,
+  aes(
+    x = kentsel_donusum_evet_orani,
+    y = risk_puani,
+    color = politika_grubu,
+    size = nufus_2024
+  )
+) +
+  geom_vline(
+    xintercept = median_transformation,
+    linetype = "dashed",
+    color = "grey50"
+  ) +
+  geom_hline(
+    yintercept = median_risk,
+    linetype = "dashed",
+    color = "grey50"
+  ) +
+  geom_point(alpha = 0.8) +
+  geom_text(
+    data = label_districts,
+    aes(label = ilce_adi),
+    size = 2.8,
+    vjust = -0.8,
+    show.legend = FALSE,
+    check_overlap = TRUE
+  ) +
+  scale_x_continuous(labels = percent) +
+  scale_size_continuous(
+    labels = label_number(scale_cut = cut_short_scale())
+  ) +
+  scale_color_manual(
+    values = c(
+      "High risk / low demand" = "#9b2226",
+      "High risk / high demand" = "#ee9b00",
+      "Low risk / high demand" = "#0a9396",
+      "Low risk / low demand" = "#94d2bd"
+    )
+  ) +
+  labs(
+    title = "Modeled Risk and Perceived Urban Transformation Need",
+    subtitle = "Dashed lines show the median values across 39 districts",
+    x = "Share reporting a need for urban transformation",
+    y = "Normalized risk score",
+    color = "Policy group",
+    size = "2024 population"
+  ) +
+  theme_minimal()
+```
+
+Nine districts fall into the high-risk/low-demand group. This does not prove that residents are unaware of risk: the opinion data may reflect financial constraints, tenure status, trust, previous transformation experience, or differences in how the survey question was understood. It does, however, identify districts where technical assessment and public perception are less closely aligned.
+
+### 3.3.3 Priority Gaps
+
+The risk-demand gap compares each district's percentile position in the risk ranking with its percentile position in transformation demand. Positive values indicate that a district ranks higher in modeled risk than in perceived transformation need. This is a relative prioritization measure, not an estimate of individual awareness.
+
+```{r}
+high_risk_low_demand <- ilce_risk |>
+  filter(politika_grubu == "High risk / low demand") |>
+  arrange(desc(risk_puani)) |>
+  transmute(
+    district = ilce_adi,
+    risk_rank = risk_sirasi,
+    risk_score = round(risk_puani, 1),
+    transformation_need =
+      percent(kentsel_donusum_evet_orani, accuracy = 0.1),
+    structural_score =
+      round(yapisal_kirilganlik_puani, 1),
+    pre_1980_share =
+      percent(eski_bina_orani, accuracy = 0.1)
+  )
+
+knitr::kable(
+  high_risk_low_demand,
+  caption = "Districts with above-median risk and below-median transformation demand"
+)
+
+largest_gaps <- ilce_risk |>
+  arrange(desc(risk_talep_farki)) |>
+  slice_head(n = 10) |>
+  transmute(
+    district = ilce_adi,
+    risk_score = round(risk_puani, 1),
+    transformation_need =
+      percent(kentsel_donusum_evet_orani, accuracy = 0.1),
+    percentile_gap =
+      percent(risk_talep_farki, accuracy = 0.1)
+  )
+
+knitr::kable(
+  largest_gaps,
+  caption = "Largest positive gaps between modeled risk and transformation demand"
+)
+
+gap_plot_data <- ilce_risk |>
+  arrange(desc(abs(risk_talep_farki))) |>
+  slice_head(n = 15)
+
+ggplot(
+  gap_plot_data,
+  aes(
+    x = risk_talep_farki,
+    y = fct_reorder(ilce_adi, risk_talep_farki),
+    fill = risk_talep_farki > 0
+  )
+) +
+  geom_col() +
+  geom_vline(xintercept = 0, color = "grey40") +
+  scale_x_continuous(labels = percent) +
+  scale_fill_manual(
+    values = c(
+      "TRUE" = "#9b2226",
+      "FALSE" = "#0a9396"
+    ),
+    labels = c(
+      "TRUE" = "Risk rank exceeds demand rank",
+      "FALSE" = "Demand rank exceeds risk rank"
+    )
+  ) +
+  labs(
+    title = "Largest Relative Gaps Between Risk and Transformation Demand",
+    x = "Risk percentile minus transformation-demand percentile",
+    y = NULL,
+    fill = NULL
+  ) +
+  theme_minimal()
+
+# Store the perception-risk comparison variables in the reproducible file.
+save(
+  depremsenaryo,
+  mahbinasayi,
+  istanbuldepremverisi,
+  belediyenufus,
+  kentseldonusum,
+  depremsenaryo_ilce,
+  mahbinasayi_ilce,
+  belediyenufus_ilce,
+  kentseldonusum_ilce,
+  gozlenen_deprem_baglam,
+  ilce_birlesik,
+  ilce_risk,
+  file = "istanbul_deprem_verileri.RData"
+)
+```
+
+Adalar and Esenyurt have the largest positive gaps. Adalar combines the highest modeled risk score with a comparatively low transformation-demand proportion, while Esenyurt combines substantial exposure with one of the lowest reported demand proportions. Büyükçekmece, Silivri, and Beylikdüzü also show notable positive gaps. These districts are candidates for more detailed local investigation and targeted risk communication rather than automatic conclusions about resident awareness.
+
+## 3.4 Results Tables, Ranking, and District Map
+
+### 3.4.1 Priority Summary
+
+The table below combines the principal decision-support indicators. It allows the overall ranking to be interpreted together with projected losses, structural conditions, exposure, and public opinion.
+
+```{r}
+priority_summary <- ilce_risk |>
+  slice_head(n = 15) |>
+  transmute(
+    rank = risk_sirasi,
+    district = ilce_adi,
+    risk_score = round(risk_puani, 1),
+    risk_group = risk_grubu,
+    projected_loss_of_life = can_kaybi_sayisi,
+    loss_per_100000 = round(can_kaybi_100bin, 1),
+    heavy_damage_share =
+      percent(agir_ve_cok_agir_hasar_orani, accuracy = 0.1),
+    pre_1980_share =
+      percent(eski_bina_orani, accuracy = 0.1),
+    population_2024 = comma(nufus_2024),
+    transformation_need =
+      percent(kentsel_donusum_evet_orani, accuracy = 0.1),
+    policy_group = politika_grubu
+  )
+
+knitr::kable(
+  priority_summary,
+  caption = "Decision-support summary for the 15 highest-ranked districts"
+)
+```
+
+The ranking must be interpreted through its components. For example, Adalar ranks first because of very high per-capita consequences despite low total exposure, whereas Küçükçekmece and Bahçelievler combine substantial projected consequences with much larger populations. The table therefore presents both absolute and population-adjusted outcomes.
+
+### 3.4.2 Complete District Ranking
+
+```{r}
+complete_ranking <- ilce_risk |>
+  transmute(
+    rank = risk_sirasi,
+    district = ilce_adi,
+    risk_score = round(risk_puani, 1),
+    risk_group = risk_grubu,
+    human_consequences = round(insani_sonuc_puani, 1),
+    structural_vulnerability =
+      round(yapisal_kirilganlik_puani, 1),
+    infrastructure_shelter =
+      round(altyapi_barinma_puani, 1),
+    exposure = round(maruziyet_puani, 1),
+    transformation_need =
+      percent(kentsel_donusum_evet_orani, accuracy = 0.1),
+    risk_demand_group = politika_grubu
+  ) |>
+  arrange(rank)
+
+knitr::kable(
+  complete_ranking,
+  caption = "Complete normalized risk ranking of Istanbul's 39 districts"
+)
+```
+
+### 3.4.3 District Boundary Integration
+
+The district map uses GADM 4.1 second-level administrative boundaries. A fixed lookup based on GADM geographic identifiers is used because several district names in the source file have character-encoding differences. The code stops if the boundary data and risk table do not match exactly.
+
+```{r}
+suppressWarnings(
+  suppressPackageStartupMessages(library(sf))
+)
+
+turkey_district_boundaries <- st_read(
+  "data/gadm/gadm41_TUR_2.json",
+  quiet = TRUE
+)
+
+istanbul_boundary_lookup <- c(
+  "TUR.40.1_1" = "ADALAR",
+  "TUR.40.2_1" = "ARNAVUTKÖY",
+  "TUR.40.3_1" = "ATAŞEHİR",
+  "TUR.40.4_1" = "AVCILAR",
+  "TUR.40.5_1" = "BAĞCILAR",
+  "TUR.40.6_1" = "BAHÇELİEVLER",
+  "TUR.40.7_1" = "BAKIRKÖY",
+  "TUR.40.8_1" = "BAŞAKŞEHİR",
+  "TUR.40.9_1" = "BAYRAMPAŞA",
+  "TUR.40.10_1" = "BEŞİKTAŞ",
+  "TUR.40.11_1" = "BEYKOZ",
+  "TUR.40.12_1" = "BEYLİKDÜZÜ",
+  "TUR.40.13_1" = "BEYOĞLU",
+  "TUR.40.14_1" = "BÜYÜKÇEKMECE",
+  "TUR.40.15_1" = "ÇATALCA",
+  "TUR.40.16_1" = "ÇEKMEKÖY",
+  "TUR.40.17_1" = "ESENLER",
+  "TUR.40.18_1" = "ESENYURT",
+  "TUR.40.19_1" = "EYÜPSULTAN",
+  "TUR.40.20_1" = "FATİH",
+  "TUR.40.21_1" = "GAZİOSMANPAŞA",
+  "TUR.40.22_1" = "GÜNGÖREN",
+  "TUR.40.23_1" = "KADIKÖY",
+  "TUR.40.24_1" = "KAĞITHANE",
+  "TUR.40.25_1" = "KARTAL",
+  "TUR.40.26_1" = "KÜÇÜKÇEKMECE",
+  "TUR.40.27_1" = "MALTEPE",
+  "TUR.40.28_1" = "PENDİK",
+  "TUR.40.29_1" = "SANCAKTEPE",
+  "TUR.40.30_1" = "SARIYER",
+  "TUR.40.31_1" = "ŞİLE",
+  "TUR.40.32_1" = "ŞİŞLİ",
+  "TUR.40.33_1" = "SULTANBEYLİ",
+  "TUR.40.34_1" = "SULTANGAZİ",
+  "TUR.40.35_1" = "TUZLA",
+  "TUR.40.36_1" = "ÜMRANİYE",
+  "TUR.40.37_1" = "ÜSKÜDAR",
+  "TUR.40.38_1" = "ZEYTİNBURNU",
+  "TUR.40.39_1" = "SİLİVRİ"
+)
+
+istanbul_ilce_haritasi <- turkey_district_boundaries |>
+  filter(GID_2 %in% names(istanbul_boundary_lookup)) |>
+  mutate(
+    ilce_adi = unname(istanbul_boundary_lookup[GID_2])
+  ) |>
+  select(ilce_adi, geometry) |>
+  left_join(ilce_risk, by = "ilce_adi")
+
+stopifnot(
+  nrow(istanbul_ilce_haritasi) == 39,
+  n_distinct(istanbul_ilce_haritasi$ilce_adi) == 39,
+  setequal(
+    istanbul_ilce_haritasi$ilce_adi,
+    ilce_risk$ilce_adi
+  ),
+  sum(is.na(istanbul_ilce_haritasi$risk_puani)) == 0,
+  all(st_is_valid(istanbul_ilce_haritasi))
+)
+```
+
+### 3.4.4 Static Risk Map
+
+```{r}
+ggplot(istanbul_ilce_haritasi) +
+  geom_sf(
+    aes(fill = risk_puani),
+    color = "white",
+    linewidth = 0.25
+  ) +
+  scale_fill_viridis_c(
+    option = "magma",
+    direction = -1,
+    name = "Risk score"
+  ) +
+  labs(
+    title = "Normalized Earthquake Risk Score by District",
+    subtitle = "Relative composite score based on four equally weighted dimensions",
+    caption = "District boundaries: GADM 4.1"
+  ) +
+  theme_void() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "right"
+  )
+```
+
+The map highlights clusters that are less visible in a simple ranking. High scores appear in both central districts with older building stocks and western districts with high projected consequences or exposure. The map is comparative: lighter districts have lower scores relative to other Istanbul districts, not zero earthquake risk.
+
+### 3.4.5 Interactive District Map
+
+```{r}
+suppressWarnings(library(leaflet))
+
+risk_palette <- colorNumeric(
+  palette = "YlOrRd",
+  domain = istanbul_ilce_haritasi$risk_puani,
+  reverse = FALSE
+)
+
+district_popup <- sprintf(
+  paste0(
+    "<strong>%s</strong><br>",
+    "Risk rank: %s / 39<br>",
+    "Risk score: %.1f<br>",
+    "Risk group: %s<br>",
+    "Human consequences: %.1f<br>",
+    "Structural vulnerability: %.1f<br>",
+    "Infrastructure and shelter: %.1f<br>",
+    "Exposure: %.1f<br>",
+    "Projected loss of life: %s<br>",
+    "2024 population: %s<br>",
+    "Transformation need: %s<br>",
+    "Risk-demand group: %s"
+  ),
+  istanbul_ilce_haritasi$ilce_adi,
+  istanbul_ilce_haritasi$risk_sirasi,
+  istanbul_ilce_haritasi$risk_puani,
+  istanbul_ilce_haritasi$risk_grubu,
+  istanbul_ilce_haritasi$insani_sonuc_puani,
+  istanbul_ilce_haritasi$yapisal_kirilganlik_puani,
+  istanbul_ilce_haritasi$altyapi_barinma_puani,
+  istanbul_ilce_haritasi$maruziyet_puani,
+  comma(istanbul_ilce_haritasi$can_kaybi_sayisi),
+  comma(istanbul_ilce_haritasi$nufus_2024),
+  percent(
+    istanbul_ilce_haritasi$kentsel_donusum_evet_orani,
+    accuracy = 0.1
+  ),
+  istanbul_ilce_haritasi$politika_grubu
+)
+
+leaflet(istanbul_ilce_haritasi) |>
+  addProviderTiles(providers$CartoDB.Positron) |>
+  addPolygons(
+    fillColor = ~ risk_palette(risk_puani),
+    fillOpacity = 0.75,
+    color = "white",
+    weight = 1,
+    popup = district_popup,
+    label = ~ paste0(
+      ilce_adi,
+      ": ",
+      round(risk_puani, 1)
+    ),
+    highlightOptions = highlightOptions(
+      weight = 3,
+      color = "#333333",
+      fillOpacity = 0.9,
+      bringToFront = TRUE
+    )
+  ) |>
+  addLegend(
+    pal = risk_palette,
+    values = ~ risk_puani,
+    title = "Risk score",
+    position = "bottomright",
+    opacity = 0.8
+  ) |>
+  fitBounds(
+    lng1 = 28.05,
+    lat1 = 40.80,
+    lng2 = 29.90,
+    lat2 = 41.56
+  )
+
+# Store the validated spatial table with the analytical outputs.
+save(
+  depremsenaryo,
+  mahbinasayi,
+  istanbuldepremverisi,
+  belediyenufus,
+  kentseldonusum,
+  depremsenaryo_ilce,
+  mahbinasayi_ilce,
+  belediyenufus_ilce,
+  kentseldonusum_ilce,
+  gozlenen_deprem_baglam,
+  ilce_birlesik,
+  ilce_risk,
+  istanbul_ilce_haritasi,
+  file = "istanbul_deprem_verileri.RData"
+)
+```
+
+## 3.5 Results
+
+The equal-weight composite score ranks Adalar, Fatih, Bakırköy, Küçükçekmece, and Bahçelievler as the five highest-risk districts. These districts reach high scores for different reasons. Adalar has the highest per-capita human-consequence and infrastructure scores despite having the lowest exposure score, while Fatih combines high human consequences with substantial structural vulnerability. Küçükçekmece and Bahçelievler have lower structural scores than Fatih but much larger exposed populations and building stocks.
+
+Adalar's first-place ranking requires particular care in interpretation. Its small population increases per-capita rates, so its score reflects high modeled consequences relative to population rather than the largest absolute number of affected people. For this reason, the component scores and raw counts should always be considered alongside the overall ranking.
+
+The alternative weighting scheme produces a Spearman rank correlation of 0.965 with the equal-weight ranking, and nine of the ten highest-ranked districts remain in the top ten. This indicates that the broad ranking is relatively stable, although some individual districts change position when greater weight is assigned to human and structural consequences.
 
 # 4. Results and Key Takeaways
 
@@ -349,7 +1767,7 @@ Istanbul is the most populous city in Europe, which means that in the event of a
 
 The aim of this project is to examine structural vulnerability, make district-based assessments, and evaluate the views of people living in Istanbul.
 
-Four datasets were used in this study, and a series of plots were produced and interpreted in detail.
+Five datasets were used in this study, and a series of plots were produced and interpreted in detail.
 
 This study identified the districts that are most likely to experience building and infrastructure damage in the event of an earthquake. In this way, it provides guidance on where aid should be directed, how it should be delivered, and to what extent support may be required.
 
