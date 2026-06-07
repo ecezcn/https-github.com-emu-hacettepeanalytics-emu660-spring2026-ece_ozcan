@@ -1,8 +1,22 @@
 ---
 title: "Project Istanbul"
-format: html
-code-fold: true
-code-summary: "Show Code"
+author: "Ece Özcan"
+format:
+  html:
+    code-fold: true
+    code-summary: "Show Code"
+  pdf:
+    pdf-engine: xelatex
+    colorlinks: true
+    papersize: a4
+    fontsize: 11pt
+    geometry:
+      - left=2cm
+      - right=2cm
+      - top=2cm
+      - bottom=2cm
+    toc: true
+    number-sections: true
 ---
 
 ```{r}
@@ -889,7 +903,30 @@ istanbul_map <- leaflet(data = deprem_konum) %>%
     popup = ~name
   )
 
-istanbul_map
+if (knitr::is_html_output()) {
+  istanbul_map
+} else {
+  ggplot(
+    istanbuldepremverisi,
+    aes(
+      x = Longitude,
+      y = Latitude,
+      color = Magnitude,
+      size = Magnitude
+    )
+  ) +
+    geom_point(alpha = 0.65) +
+    coord_equal() +
+    scale_color_viridis_c() +
+    labs(
+      title = "Earthquakes Recorded Around Istanbul",
+      x = "Longitude",
+      y = "Latitude",
+      color = "Magnitude",
+      size = "Magnitude"
+    ) +
+    theme_minimal()
+}
 ```
 
 ## 3.2 Normalized District Risk Score
@@ -1700,39 +1737,58 @@ district_popup <- sprintf(
   istanbul_ilce_haritasi$politika_grubu
 )
 
-leaflet(istanbul_ilce_haritasi) |>
-  addProviderTiles(providers$CartoDB.Positron) |>
-  addPolygons(
-    fillColor = ~ risk_palette(risk_puani),
-    fillOpacity = 0.75,
-    color = "white",
-    weight = 1,
-    popup = district_popup,
-    label = ~ paste0(
-      ilce_adi,
-      ": ",
-      round(risk_puani, 1)
-    ),
-    highlightOptions = highlightOptions(
-      weight = 3,
-      color = "#333333",
-      fillOpacity = 0.9,
-      bringToFront = TRUE
+if (knitr::is_html_output()) {
+  leaflet(istanbul_ilce_haritasi) |>
+    addProviderTiles(providers$CartoDB.Positron) |>
+    addPolygons(
+      fillColor = ~ risk_palette(risk_puani),
+      fillOpacity = 0.75,
+      color = "white",
+      weight = 1,
+      popup = district_popup,
+      label = ~ paste0(
+        ilce_adi,
+        ": ",
+        round(risk_puani, 1)
+      ),
+      highlightOptions = highlightOptions(
+        weight = 3,
+        color = "#333333",
+        fillOpacity = 0.9,
+        bringToFront = TRUE
+      )
+    ) |>
+    addLegend(
+      pal = risk_palette,
+      values = ~ risk_puani,
+      title = "Risk score",
+      position = "bottomright",
+      opacity = 0.8
+    ) |>
+    fitBounds(
+      lng1 = 28.05,
+      lat1 = 40.80,
+      lng2 = 29.90,
+      lat2 = 41.56
     )
-  ) |>
-  addLegend(
-    pal = risk_palette,
-    values = ~ risk_puani,
-    title = "Risk score",
-    position = "bottomright",
-    opacity = 0.8
-  ) |>
-  fitBounds(
-    lng1 = 28.05,
-    lat1 = 40.80,
-    lng2 = 29.90,
-    lat2 = 41.56
-  )
+} else {
+  ggplot(istanbul_ilce_haritasi) +
+    geom_sf(
+      aes(fill = risk_puani),
+      color = "white",
+      linewidth = 0.25
+    ) +
+    scale_fill_viridis_c(
+      option = "magma",
+      direction = -1,
+      name = "Risk score"
+    ) +
+    labs(
+      title = "Normalized Earthquake Risk Score by District",
+      caption = "District boundaries: GADM 4.1"
+    ) +
+    theme_void()
+}
 
 # Store the validated spatial table with the analytical outputs.
 save(
